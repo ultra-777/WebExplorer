@@ -174,7 +174,7 @@ angular.module('explorer').controller('ExplorerController', ['$scope', 'DataServ
 
 		scope.onNewFolder = function() {
 			var modalInstance = modal.open({
-				templateUrl: 'modules/explorer/Views/new-folder-view.client.view.html',
+				templateUrl: 'modules/explorer/views/new-folder-view.client.view.html',
 				controller: 'NewFolderController',
 				resolve: {
 					children: function() {
@@ -251,7 +251,7 @@ angular.module('explorer').controller('ExplorerController', ['$scope', 'DataServ
 
 		scope.onUploadFile = function () {
 			var modalInstance = modal.open({
-				templateUrl: 'modules/explorer/Views/upload-file-view.client.view.html',
+				templateUrl: 'modules/explorer/views/upload-file-view.client.view.html',
 				controller: 'UploadFileController',
 				resolve: {
 					children: function () {
