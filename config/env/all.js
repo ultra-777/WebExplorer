@@ -6,8 +6,8 @@ module.exports = {
 		description: 'Xmen, cool',
 		keywords: 'Xmen, cool'
 	},
-	port: process.env.PORT || 3000,
-    storage: process.env.STORAGE_PATH || '.',
+	port: process.env.PORT || 80,
+    storage: process.env.STORAGE_PATH || './data',
     rootAlias: process.env.ROOT_ALIAS || '$',
 	templateEngine: 'swig',
 	sessionSecret: 'MEAN',
