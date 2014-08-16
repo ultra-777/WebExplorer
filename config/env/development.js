@@ -2,7 +2,7 @@
 
 module.exports = {
 	db: 'mongodb://localhost/xmen-dev',
-    storage: './data',
+    storage: 'data',
 	app: {
 		title: 'Xmen - Development Environment'
 	},
