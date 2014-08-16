@@ -1,0 +1,53 @@
+<section data-ng-controller="ExplorerController">
+	<table >
+        <tr>
+            <td height="32">
+                <button data-ng-click="moveBack()" data-ng-if="canBack" class="folderHeader">
+                    <img src="modules/explorer/img/back.png" height="16" width="16" />Back
+                </button>
+            </td>
+            <td>
+                <img src="modules/explorer/img/wait.gif" height="16" width="16" ng-if="isNavigating" />
+            </td>
+        </tr>
+    </table>
+
+
+    <table>
+        <tr>
+            <td
+                tree-folder-data
+                data-ng-repeat="itemData in path"></td>
+        </tr>
+    </table>
+
+
+    <br />
+    <div class="dropdown">
+        <img
+            class="dropdown-toggle"
+            src="modules/explorer/img/folder-small.png"
+            height="24"
+            width="24" />
+
+
+        <ul class="dropdown-menu">
+            <li><a href="#" ng-click="onNewFolder()">New Folder</a></li>
+            <li><a href="#" ng-click="onUploadFile()">Upload File</a></li>
+            <!--<li><a href="#" ng-click="onUploadFolder()">Upload Folder</a></li>-->
+        </ul>
+
+        <button data-ng-click="onStopUploading()" data-ng-show="currentBlob !== null">Stop</button>
+        <span data-ng-show="currentBlob !== null"> Transfer Rate: {{transferRate | bytes }} /sec </span>
+    </div>
+    {{percent | percentage : 2}}
+    <br />
+    <br />
+
+    <div style="height: 400px; overflow-y: scroll;">
+        <tree-item-data
+            data-ng-repeat="itemData in currentFolder.Children" />
+    </div>
+    <br />
+<!---->
+</section>

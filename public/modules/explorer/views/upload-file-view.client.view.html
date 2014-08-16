@@ -1,0 +1,22 @@
+<div class="modal-header">
+    <h3>Upload file</h3>
+</div>
+<div class="modal-body">
+    <h4>Source: </h4>
+    <input input-file-fix type="file" id="source" style="display:none;" ng-model="current.path"/>
+    <table width="100%">
+        <tr>
+            <td width="1%"><button uploader-button style="margin: 2px;"> Browse </button></td>
+            <td width="99%"><input type="text" ng-model="current.name" style = "width: 100%;margin: 2px;" /></td>
+        </tr>
+    </table>
+
+    <h4>Size: {{ current.size | bytes }}</h4>
+
+<br/>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="ok()">OK</button>
+    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>
+

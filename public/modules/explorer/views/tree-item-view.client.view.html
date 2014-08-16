@@ -1,0 +1,44 @@
+<div data-ng-controller="ItemOptionsController">
+	<table>
+		<tr>
+            <td width="18px">
+                <div
+                    class="dropdown"
+                    show-on-row-hover
+                    style="display:none;float:left">
+                    <img
+                        class="dropdown-toggle"
+                        src="/modules/explorer/img/ui-menu-icon.png"
+                        height="16"
+                        width="16"/>
+
+                    <ul class="dropdown-menu">
+                        <li ng-repeat="action in getItems()" ng-switch on="{{(undefined === action.href) || (null === action.href)}}">
+                            <a ng-switch-when="false" href="{{action.href}}">{{action.Title}}</a>
+                            <a ng-switch-when="true" href="#" ng-click="onAction(action.Action)">{{action.Title}}</a>
+                        </li>
+                    </ul>
+            </td>
+            <td width="5px"/>
+			<td>
+				<img src="{{iconName}}" height="16" width="16"/>
+
+                <a
+                    id="{{name}}"
+                    href
+                    ng-if="isFolder"
+                    class="dropdown-toggle"
+                    ng-click="select()">{{name}}</a>
+				<a
+					id="{{name}}"
+                    href="{{href}}"
+					popover-placement="right"
+					popover="{{size | bytes}}"
+					popover-trigger="mouseenter"
+                    ng-click="select()"
+					ng-if ="!isFolder">{{name}}</a>
+			</td>
+			<td/>
+		</tr>
+	</table>
+</div>
