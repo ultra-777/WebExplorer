@@ -57,12 +57,7 @@ module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
  * Get the modules JavaScript files
  */
 module.exports.getJavaScriptAssets = function(includeTests) {
-	var output = this.getGlobbedFiles(this.assets.lib.js.concat(this.assets.js), 'public/');
-
-	// To include tests
-	if (includeTests) {
-		output = _.union(output, this.getGlobbedFiles(this.assets.tests));
-	}
+	var output = this.getGlobbedFiles(this.assets.lib.js.concat(this.assets.js), 'client/');
 
 	return output;
 };
@@ -71,6 +66,6 @@ module.exports.getJavaScriptAssets = function(includeTests) {
  * Get the modules CSS files
  */
 module.exports.getCSSAssets = function() {
-	var output = this.getGlobbedFiles(this.assets.lib.css.concat(this.assets.css), 'public/');
+	var output = this.getGlobbedFiles(this.assets.lib.css.concat(this.assets.css), 'client/');
 	return output;
 };

@@ -1,14 +1,13 @@
 {
-	"name": "xmen",
+	"name": "Cheers",
 	"version": "0.0.1",
-	"description": "Xmen, cool",
+	"description": "Cheers, cool",
 	"dependencies": {
 		"bootstrap": "~3",
-        "jquery": "~1.9.1",
+        "jquery": "~2",
         "jquery-ui": "~1.10.3",
 		"angular": "~1.2",
 		"angular-resource": "~1.2",
-		"angular-mocks": "~1.2",
 		"angular-cookies": "~1.2",
 		"angular-animate": "~1.2",
 		"angular-touch": "~1.2",

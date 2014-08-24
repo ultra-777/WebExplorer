@@ -3,12 +3,11 @@
 module.exports = function(grunt) {
 	// Unified Watch Object
 	var watchFiles = {
-		serverViews: ['app/views/**/*.*'], 
-		serverJS: ['gruntfile.js', 'server.js', 'config/**/*.js', 'app/**/*.js'],
-		clientViews: ['public/modules/**/views/*.html'],
-		clientJS: ['public/js/*.js', 'public/modules/**/*.js'],
-		clientCSS: ['public/modules/**/*.css'],
-		mochaTests: ['app/tests/**/*.js']
+		serverViews: ['server/views/**/*.*'], 
+		serverJS: ['gruntfile.js', 'server.js', 'config/**/*.js', 'server/**/*.js'],
+		clientViews: ['client/modules/**/views/*.html'],
+		clientJS: ['client/js/*.js', 'client/modules/**/*.js'],
+		clientCSS: ['client/modules/**/*.css']
 	};
 
 	// Project Configuration
@@ -71,20 +70,20 @@ module.exports = function(grunt) {
 					mangle: false
 				},
 				files: {
-					'public/dist/application.min.js': 'public/dist/application.js'
+					'client/dist/application.min.js': 'client/dist/application.js'
 				}
 			}
 		},
 		cssmin: {
 			combine: {
 				files: {
-					'public/dist/application.min.css': '<%= applicationCSSFiles %>'
+					'client/dist/application.min.css': '<%= applicationCSSFiles %>'
 				}
 			}
 		},
 		nodemon: {
 			dev: {
-				script: 'server.js',
+				script: 'run.js',
 				options: {
 					nodeArgs: ['--debug'],
 					ext: 'js,html',
@@ -108,7 +107,7 @@ module.exports = function(grunt) {
         ngmin: {
             production: {
                 files: {
-                    'public/dist/application.js': '<%= applicationJavaScriptFiles %>'
+                    'client/dist/application.js': '<%= applicationJavaScriptFiles %>'
                 }
             }
         },
@@ -152,7 +151,4 @@ module.exports = function(grunt) {
 
 	// Build task(s).
 	grunt.registerTask('build', ['lint', 'loadConfig', 'ngmin', 'uglify', 'cssmin']);
-
-	// Test task.
-	grunt.registerTask('test', ['env:test', 'mochaTest', 'karma:unit']);
 };
