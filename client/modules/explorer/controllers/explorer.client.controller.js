@@ -1,7 +1,8 @@
 'use strict';
 
-angular.module('explorer').controller('ExplorerController', ['$scope', 'DataService', '$modal', '$filter',
-	function(scope, dataService, modal, filter) {
+angular.module('explorer').controller('ExplorerController', [
+    '$scope', 'DataService', '$modal', '$filter', 'messageBoxService',
+	function(scope, dataService, modal, filter, messageBox) {
 		
 		
 		scope.currentFolder = null;
@@ -173,6 +174,7 @@ angular.module('explorer').controller('ExplorerController', ['$scope', 'DataServ
         }
 
 		scope.onNewFolder = function() {
+
 			var modalInstance = modal.open({
 				templateUrl: 'modules/explorer/views/new-folder-view.client.view.html',
 				controller: 'NewFolderController',
@@ -195,6 +197,7 @@ angular.module('explorer').controller('ExplorerController', ['$scope', 'DataServ
 			}, function () {
 				var w = 0;
 			});
+
 		};
 
 		scope.newTask = function(totalSize) {
@@ -319,13 +322,14 @@ angular.module('explorer').controller('ExplorerController', ['$scope', 'DataServ
 													reader.readAsDataURL(blob);
 												} else {
 													scope.currentBlob = null;
-                                                    var dd = new Date();
-                                                    var currentTime = dd.getTime();
                                                     var secondsLeft = (currentTime - startTime) / 1000;
 
-                                                    alert('Size: ' + filter('bytes')(taskInfo.total, 1)  + '\n' +
+                                                    messageBox.show(
+                                                        'Transfer complete',
+                                                        'Size: ' + filter('bytes')(taskInfo.total, 1)  + '\n' +
                                                         'Duration: ' + secondsLeft + ' sec.' + '\n' +
-                                                        'Rate: ' + filter('bytes')((taskInfo.total / secondsLeft), 1) + ' / sec');
+                                                        'Rate: ' + filter('bytes')((taskInfo.total / secondsLeft), 1) + ' / sec'
+                                                    );
 												}
 
 												scope.percent = prcent;

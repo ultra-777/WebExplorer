@@ -1,12 +1,9 @@
 <div class="modal-header">
-    <h3>{{dialogOptions.headerText}}</h3>
+    <h3>{{dialogOptions.title}}</h3>
 </div>
 <div class="modal-body">
-    <p>{{dialogOptions.bodyText}}</p>
+    <p>{{dialogOptions.message}}</p>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn"
-            data-ng-click="dialogOptions.close()">{{dialogOptions.closeButtonText}}</button>
-    <button class="btn btn-primary"
-            data-ng-click="dialogOptions.callback();">{{dialogOptions.actionButtonText}}</button>
+    <button class="btn btn-primary" ng-click="ok()">OK</button>
 </div>
