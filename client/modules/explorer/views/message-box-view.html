@@ -1,8 +1,8 @@
 <div class="modal-header">
-    <h3>{{dialogOptions.title}}</h3>
+    <h3 ng-bind="dialogOptions.title"/>
 </div>
 <div class="modal-body">
-    <p>{{dialogOptions.message}}</p>
+    <p ng-bind-html="dialogOptions.message"/>
 </div>
 <div class="modal-footer">
     <button class="btn btn-primary" ng-click="ok()">OK</button>

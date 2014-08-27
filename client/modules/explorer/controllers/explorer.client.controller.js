@@ -326,8 +326,9 @@ angular.module('explorer').controller('ExplorerController', [
 
                                                     messageBox.show(
                                                         'Transfer complete',
-                                                        'Size: ' + filter('bytes')(taskInfo.total, 1)  + '\n' +
-                                                        'Duration: ' + secondsLeft + ' sec.' + '\n' +
+                                                        'Size: ' + filter('bytes')(taskInfo.total, 1)  + '<br/>' +
+                                                        'Chunks count: ' + taskInfo.index + '<br/>' +
+                                                        'Duration: ' + secondsLeft + ' sec.' + '<br/>' +
                                                         'Rate: ' + filter('bytes')((taskInfo.total / secondsLeft), 1) + ' / sec'
                                                     );
 												}
