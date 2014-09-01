@@ -38,11 +38,12 @@
             <!--<li><a href="#" ng-click="onUploadFolder()">Upload Folder</a></li>-->
         </ul>
 
-        <button data-ng-click="onStopUploading()" data-ng-show="currentBlob !== null">Stop</button>
-        <span data-ng-show="currentBlob !== null"> Transfer Rate: {{transferRate | bytes }} /sec </span>
+        <button data-ng-click="onStopUploading()" data-ng-show="currentBlob !== null || currentUploader !== null">Stop</button>
+        <span data-ng-show="currentBlob !== null || currentUploader !== null"> Transfer Rate: {{transferRate | bytes }} /sec </span>
     </div>
+    <div data-ng-show="currentBlob !== null || currentUploader !== null">
     {{percent | percentage : 2}}
-    <br />
+    </div>
     <br />
 
     <div style="height: 400px; overflow-y: scroll;">

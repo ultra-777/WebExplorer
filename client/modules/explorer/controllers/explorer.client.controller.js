@@ -12,6 +12,7 @@ angular.module('explorer').controller('ExplorerController', [
 		scope.percent = 0.0;
         scope.transferRate = 0;
 		scope.currentBlob = null;
+        scope.currentUploader = null;
 
 		scope.upload = function() {
 			alert('cheers');
@@ -250,6 +251,9 @@ angular.module('explorer').controller('ExplorerController', [
 				scope.currentBlob = null;
 				scope.$digest();
 			}
+            if (scope.currentUploader !== null){
+                scope.currentUploader.abort();
+            }
 		};
 
 		scope.onUploadFile = function () {
@@ -380,55 +384,75 @@ angular.module('explorer').controller('ExplorerController', [
                 }
 
 
-                var progressCount = 0;
                 var d = new Date();
                 var startTime = d.getTime();
+                var lastTime = startTime;
+                var lastTransferred = 0;
 
-                var xhr = new XMLHttpRequest();
+                scope.currentUploader = new XMLHttpRequest();
                 var form = new FormData();
                 form.append(scope.currentFolder.Id, '');
                 form.append("file", file, file.name);
 
-                xhr.upload.onprogress = function(event) {
-                    progressCount = progressCount + 1;
+                scope.currentUploader.upload.onprogress = function(event) {
                     var progress = event.lengthComputable ? event.loaded / event.total : 0;
+
                     scope.percent = progress;
+                    var dd = new Date();
+                    var currentTime = dd.getTime();
+                    var interval = currentTime - lastTime;
+                    lastTime = currentTime;
+                    var transferred = (event.lengthComputable ? event.loaded : 0);
+                    var transferredBytes = transferred - lastTransferred;
+                    lastTransferred = transferred;
+                    scope.transferRate = transferredBytes * 1000 / interval;
+
                     scope.$digest();
                     //that._onProgressItem(item, progress);
                 };
 
-                xhr.onload = function() {
+                scope.currentUploader.onload = function() {
 
                     var dd = new Date();
                     var currentTime = dd.getTime();
                     var secondsLeft = (currentTime - startTime) / 1000;
 
-                    var fileInfo = JSON.parse(xhr.response);
+                    var fileInfo = JSON.parse(scope.currentUploader.response);
                     scope.currentFolder.Children.push(fileInfo);
+                    scope.$digest();
 
+                    scope.currentUploader = null;
 
                     messageBox.show(
                         'Transfer complete',
                             'Size: ' + filter('bytes')(fileInfo.Size, 1)  + '<br/>' +
                             'Duration: ' + secondsLeft + ' sec.' + '<br/>' +
-                            'Rate: ' + filter('bytes')((fileInfo.Size / secondsLeft), 1) + ' / sec' +
-                            'Progress: ' + progressCount
+                            'Rate: ' + filter('bytes')((fileInfo.Size / secondsLeft), 1) + ' / sec'
                     );
                 };
 
-                xhr.onerror = function() {
-                    var q = 1;
+                scope.currentUploader.onerror = function() {
+                    messageBox.show('Exception occured');
+                    scope.currentUploader = null;
                 };
 
-                xhr.onabort = function() {
-                    var q = 1;
+                scope.currentUploader.onabort = function() {
+                    messageBox.show('Transfer aborted');
+                    scope.currentUploader = null;
                 };
 
-                xhr.open("POST", "/explorer/UploadFile", true);
+                // notice that the event handler is on xhr and not xhr.upload
+                scope.currentUploader.addEventListener('readystatechange', function(e) {
+                    if( this.readyState === 4 ) {
+                        //scope.currentUploader = null;
+                    }
+                });
 
-                xhr.withCredentials = false;
+                scope.currentUploader.open("POST", "/explorer/UploadFile", true);
 
-                xhr.send(form);
+                scope.currentUploader.withCredentials = false;
+
+                scope.currentUploader.send(form);
 
             });
 
