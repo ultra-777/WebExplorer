@@ -43,7 +43,8 @@
         "stringify-object": "latest",
         "node-uuid": "latest",
         "multipart": "latest",
-		"multiparty": "latest"
+		"multiparty": "latest",
+        "memorystream": "latest"
     },
 	"devDependencies": {
 		"grunt-contrib-watch": "~0.6.1",

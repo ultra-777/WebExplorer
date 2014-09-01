@@ -380,49 +380,48 @@ angular.module('explorer').controller('ExplorerController', [
                 }
 
 
+                var progressCount = 0;
+                var d = new Date();
+                var startTime = d.getTime();
+
                 var xhr = new XMLHttpRequest();
                 var form = new FormData();
-                form.append("some", "mydata");
+                form.append(scope.currentFolder.Id, '');
                 form.append("file", file, file.name);
 
                 xhr.upload.onprogress = function(event) {
-                    var q = 1;
-                    //var progress = Math.round(event.lengthComputable ? event.loaded * 100 / event.total : 0);
+                    progressCount = progressCount + 1;
+                    var progress = event.lengthComputable ? event.loaded / event.total : 0;
+                    scope.percent = progress;
+                    scope.$digest();
                     //that._onProgressItem(item, progress);
                 };
 
                 xhr.onload = function() {
-                    var q = 1;
+
+                    var dd = new Date();
+                    var currentTime = dd.getTime();
+                    var secondsLeft = (currentTime - startTime) / 1000;
+
+                    var fileInfo = JSON.parse(xhr.response);
+                    scope.currentFolder.Children.push(fileInfo);
+
 
                     messageBox.show(
-                        'Transfer Ok',
-                            'Response:' + xhr.response + '<br/>' +
-                            'Headers: ' + xhr.getAllResponseHeaders()  + '<br/>' +
-                            'Status: ' + xhr.status + '<br/>'
+                        'Transfer complete',
+                            'Size: ' + filter('bytes')(fileInfo.Size, 1)  + '<br/>' +
+                            'Duration: ' + secondsLeft + ' sec.' + '<br/>' +
+                            'Rate: ' + filter('bytes')((fileInfo.Size / secondsLeft), 1) + ' / sec' +
+                            'Progress: ' + progressCount
                     );
-
-                    //var headers = that._parseHeaders(xhr.getAllResponseHeaders());
-                    //var response = that._transformResponse(xhr.response);
-                    //var gist = that._isSuccessCode(xhr.status) ? 'Success' : 'Error';
-                    //var method = '_on' + gist + 'Item';
-                    //that[method](item, response, xhr.status, headers);
-                    //that._onCompleteItem(item, response, xhr.status, headers);
                 };
 
                 xhr.onerror = function() {
                     var q = 1;
-                    //var headers = that._parseHeaders(xhr.getAllResponseHeaders());
-                    //var response = that._transformResponse(xhr.response);
-                    //that._onErrorItem(item, response, xhr.status, headers);
-                    //that._onCompleteItem(item, response, xhr.status, headers);
                 };
 
                 xhr.onabort = function() {
                     var q = 1;
-                    //var headers = that._parseHeaders(xhr.getAllResponseHeaders());
-                    //var response = that._transformResponse(xhr.response);
-                    //that._onCancelItem(item, response, xhr.status, headers);
-                    //that._onCompleteItem(item, response, xhr.status, headers);
                 };
 
                 xhr.open("POST", "/explorer/UploadFile", true);
@@ -431,130 +430,7 @@ angular.module('explorer').controller('ExplorerController', [
 
                 xhr.send(form);
 
-/*
-
-                var reader = new FileReader();
-
-                reader.onload = function() {
-                    var xhr = new XMLHttpRequest();
-
-                    xhr.upload.addEventListener("progress", function (e) {
-                        if (e.lengthComputable) {
-                            var progress = (e.loaded * 100) / e.total;
-                        }
-                    }, false);
-
-
-                    xhr.onreadystatechange = function () {
-                        if (this.readyState == 4) {
-                            if (this.status == 200) {
-                                // ... все ок! смотрим в this.responseText ...
-                            } else {
-                                // ... ошибка!
-                            }
-                        }
-                    };
-                };
-
-*/
-
-
-
-
-
-
-
-
-
-                /*
-                var uploadUrl = "/explorer/UploadFile";
-                var fileReader = new FileReader();
-                fileReader.onload = function(e) {
-                    $scope.upload[index] = uploadService.http({
-                        url: uploadUrl,
-                        headers: {'Content-Type': $scope.selectedFiles[index].type},
-                        data: e.target.result
-                    }).then(function(response) {
-                        $scope.uploadResult.push(response.data);
-                    }, function(response) {
-                        if (response.status > 0) $scope.errorMsg = response.status + ': ' + response.data;
-                    }, function(evt) {
-                        // Math.min is to fix IE which reports 200% sometimes
-                        $scope.progress[index] = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                    });
-                }
-                fileReader.readAsArrayBuffer(file);
-
-                */
-
-/*
-                var reader = new FileReader();
-
-                reader.onload = function() {
-                    var xhr = new XMLHttpRequest();
-
-                    xhr.upload.addEventListener("progress", function (e) {
-                        if (e.lengthComputable) {
-                            var progress = (e.loaded * 100) / e.total;
-                        }
-                    }, false);
-
-
-                    xhr.onreadystatechange = function () {
-                        if (this.readyState == 4) {
-                            if(this.status == 200) {
-                                // ... все ок! смотрим в this.responseText ...
-                            } else {
-                                // ... ошибка!
-                            }
-                        }
-                    };
-
-
-                    xhr.open("POST", "/explorer/UploadFile");
-                    var boundary = "xxxxxxxxx";
-                    // Устанавливаем заголовки
-                    xhr.setRequestHeader("Content-Type", "multipart/form-data; boundary="+boundary);
-                    xhr.setRequestHeader("Cache-Control", "no-cache");
-                    xhr.setRequestHeader("Connection", "keep-alive");
-                    xhr.setRequestHeader("Keep-Alive", "300");
-
-                    // Формируем тело запроса
-                    var body = "--" + boundary + "\r\n";
-                    body += "Content-Disposition: form-data; name='myFile1'; filename='" + file.name + "'\r\n";
-                    body += "Content-Type: application/octet-stream\r\n\r\n";
-                    body += reader.result + "\r\n";
-                    body += "--" + boundary + "\r\n";
-                    body += "Content-Disposition: form-data; name='myFile2'; filename='" + file.name + "_2" + "'\r\n";
-                    body += "Content-Type: application/octet-stream\r\n\r\n";
-                    body += reader.result + "\r\n";
-                    body += "--" + boundary + "\r\n";
-                    body += "Content-Disposition: form-data; name='myFile3'; filename='" + file.name + "_3" + "'\r\n";
-                    body += "Content-Type: application/octet-stream\r\n\r\n";
-                    body += reader.result + "\r\n";
-                    body += "--" + boundary + "--";
-                    body += + "\r\n";
-                    body += + "\r\n";
-
-                    if(xhr.sendAsBinary) {
-                        // только для firefox
-                        xhr.sendAsBinary(body);
-                    } else {
-                        // chrome (так гласит спецификация W3C)
-                        xhr.send(body);
-                    }
-                }
-
-                // Читаем файл
-                reader.readAsBinaryString(file);
-                */
             });
-
-
-
-
-
-
 
         };
 

@@ -6,8 +6,12 @@
 
 var fs = require('../models/fs.js');
 var bl = require('../models/blob.js');
-var multipart = require("multipart");
 var multiparty = require("multiparty");
+var fss = require('fs');
+var util = require('util');
+var ms = require('memorystream');
+var map = require('../models/map.js');
+
 
 exports.index = function(req, res, next) {
     var result = {
@@ -90,20 +94,7 @@ exports.releaseBlob = function(req, res, next){
 }
 
 exports.uploadFile = function(req, res, next){
-    /*
-    var bodyStr = '';
-    var index = 0;
-    req.on("data",function(chunk){
-        //bodyStr += chunk.toString();
-        index = index + 1;
-    });
-    req.on("end",function(){
-        res.writeHead(200);
-        res.send("Ok");
-    });
 
-
-*/
     var form = new multiparty.Form();
 
     // Errors may be emitted
@@ -111,26 +102,30 @@ exports.uploadFile = function(req, res, next){
         console.log('Error parsing form: ' + err.stack);
     });
 
-    var count = 0;
-    var size = 0;
+    var folderPath = null;
+    var resultPath = null;
 
 // Parts are emitted when parsing the form
     form.on('part', function(part) {
-        // You *must* act on the part by reading it
-        // NOTE: if you want to ignore it, just call "part.resume()"
-        size =  part.byteCount;
         if ((part.filename === undefined) || (part.filename === null)) {
+
+            folderPath = map.pathToLocal(part.name);
             // filename is "null" when this is a field and not a file
-            console.log('got field named ' + part.name + '  bytes: ' + part.byteCount);
+            console.log('got field named ' + part.name);
             // ignore field's content
             part.resume();
+
         }
         else{
-            // filename is not "null" when this is a file
-            count++;
-            console.log('got field named ' + part.name + '  bytes: ' + part.byteCount);
+            console.log('got field named ' + part.name);
             // ignore file's content here
-            part.resume();
+
+            if (folderPath !== null){
+                var resultPathLocal = map.joinPath(folderPath, part.filename);
+                resultPath = map.pathToRelative(resultPathLocal);
+                var out = fss.createWriteStream(resultPathLocal);
+                part.pipe(out);
+            }
         }
     });
 
@@ -138,22 +133,15 @@ exports.uploadFile = function(req, res, next){
     form.on('close', function() {
         console.log('Upload completed!');
 
-        var result =
-        {
-            id: 77,
-            percent: 1,
-            isComplete: true,
-            file: null,
-            size: size
-        };
+        var result = fs.GetItem(resultPath);
+
         res.jsonp(result);
 
-        //res.setHeader('text/plain');
-        //res.end('Received ' + count + ' files');
     });
 
 
     form.parse(req);
+
 
 
     /*
