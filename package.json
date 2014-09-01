@@ -41,8 +41,9 @@
 		"node-fs": "latest",
         "path": "latest",
         "stringify-object": "latest",
-        "node-uuid": "latest"
-	},
+        "node-uuid": "latest",
+        "multipart": "latest"
+    },
 	"devDependencies": {
 		"grunt-contrib-watch": "~0.6.1",
 		"grunt-contrib-jshint": "~0.10.0",

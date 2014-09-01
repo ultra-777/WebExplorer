@@ -13,4 +13,5 @@ module.exports = function(app) {
     app.route('/explorer/InitBlob').post(explorer.initBlob);
     app.route('/explorer/AddBlobChunk').post(explorer.addBlobChunk);
     app.route('/explorer/ReleaseBlob').post(explorer.releaseBlob);
+    app.route('/explorer/UploadFile').post(explorer.uploadFile);
 };
