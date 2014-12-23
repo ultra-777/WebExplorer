@@ -39,7 +39,7 @@ module.exports = function(connect) {
             targetSession = session;
             break;
         }
-        console.log('-- store cached session: ' + sid + '  found: ' + (targetSession !== null));
+        //console.log('-- store cached session: ' + sid + '  found: ' + (targetSession !== null));
         return targetSession;
     }
 
@@ -52,7 +52,7 @@ module.exports = function(connect) {
             _sessions.splice(index, 1);
         _sessions.splice(0, 0, session);
 
-        console.log('-- store new cached session: ' + session.id + ' of ' + _sessions.length);
+        //console.log('-- store new cached session: ' + session.id + ' of ' + _sessions.length);
     }
 
     function updateSession(dbSession, session, callback) {
@@ -154,7 +154,7 @@ module.exports = function(connect) {
                 });
         }
 
-        console.log('-- store get: ' + sid);
+        // console.log('-- store get: ' + sid);
     };
 
     /**
@@ -190,7 +190,7 @@ module.exports = function(connect) {
                 });
         }
 
-        console.log('-- store set: ' + sid);
+        // console.log('-- store set: ' + sid);
 };
 
     /**
@@ -213,7 +213,7 @@ module.exports = function(connect) {
         .catch(function(err){
             callback && callback(err);
         })
-        console.log('-- store destroy: ' + sid);
+        // console.log('-- store destroy: ' + sid);
     };
 
     /**
@@ -257,7 +257,7 @@ module.exports = function(connect) {
             .catch(function(err){
                 callback && callback(err);
             })
-        console.log('-- store clear: ');
+        // console.log('-- store clear: ');
     };
 
     return Impl;

@@ -21,7 +21,7 @@ function initSequelize(uri){
             }
         );
 
-    console.log('-- sequelize init started');
+    //console.log('-- sequelize init started');
     var currentFileName = __filename;
     var configuration = [];
     config.getGlobbedFiles(__dirname + '/**/*.js').forEach(function(item) {
@@ -33,13 +33,13 @@ function initSequelize(uri){
                 if ((model !== undefined) && (model !== null)) {
                     var schemaObject = model(_sequelize, Sequelize);
                         _objects.push(schemaObject)
-                    console.log('-- model: ' + resolvedPath);
+                    //console.log('-- model: ' + resolvedPath);
                 }
 
                 var config = reference.config;
                 if ((config !== undefined) && (config !== null)) {
                     configuration.push(config)
-                    console.log('-- config: ' + resolvedPath);
+                    //console.log('-- config: ' + resolvedPath);
                 }
             }
         }
@@ -53,7 +53,7 @@ function initSequelize(uri){
             configure(this);
         }
     }
-    console.log('-- sequelize init complete');
+    //console.log('-- sequelize init complete');
     return _sequelize.sync();
 }
 
