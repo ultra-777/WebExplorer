@@ -12,15 +12,15 @@ var express = require('express'),
 	cookieParser = require('cookie-parser'),
 	helmet = require('helmet'),
 	passport = require('passport'),
-	mongoStore = require('connect-mongo')({
-		session: session
-	}),
 	flash = require('connect-flash'),
 	config = require('./config'),
 	consolidate = require('consolidate'),
-	path = require('path');
+	path = require('path'),
+	store = require('./store')({
+		session: session
+	});
 
-module.exports = function(db) {
+module.exports = function() {
 	// Initialize express app
 	var app = express();
 
@@ -85,19 +85,17 @@ module.exports = function(db) {
 	// CookieParser should be above session
 	app.use(cookieParser());
 
-	// Express MongoDB session storage
+	// Express session storage
 	app.use(session({
-		secret: config.sessionSecret,
-        /*
-        cookie: {
+		secret: config.sessionSecret
+        ,cookie: {
             path: '/',
             httpOnly: true,
-            maxAge: 20000},
-        */
-		store: new mongoStore({
-			db: db.connection.db,
-			collection: config.sessionCollection
-		})
+			//expires: false,
+            maxAge: 14 * 24 * 60 * 60 * 1000 //milliseconds
+		}
+
+		,store: new store()
 	}));
 
 	// use passport session

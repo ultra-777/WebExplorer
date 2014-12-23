@@ -1,8 +1,9 @@
 'use strict';
 
 module.exports = {
-	db: 'mongodb://localhost/webExplorerZeroDevelopment',
+	db: 'postgres://postgres:password@localhost:5432/Test',
 	app: {
 		title: 'Cheers - Development'
-	}
+	},
+	port: process.env.PORT || 80,
 };

@@ -3,8 +3,8 @@
 module.exports = {
 	app: {
 		title: 'Cheers',
-		description: 'Cheers, cool',
-		keywords: 'Cheers, cool'
+		description: 'Cheers',
+		keywords: 'Cheers'
 	},
 	port: process.env.PORT || 80,
     storage: process.env.STORAGE_PATH || 'data',

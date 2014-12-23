@@ -219,36 +219,6 @@ angular.module('core').service('Menus', [function () {
     //Adding the topbar menu
     this.addMenu('topbar');
   }]);'use strict';
-(function () {
-  describe('HeaderController', function () {
-    //Initialize global variables
-    var scope, HeaderController;
-    // Load the main application module
-    beforeEach(module(ApplicationConfiguration.applicationModuleName));
-    beforeEach(inject(function ($controller, $rootScope) {
-      scope = $rootScope.$new();
-      HeaderController = $controller('HeaderController', { $scope: scope });
-    }));
-    it('should expose the authentication service', function () {
-      expect(scope.authentication).toBeTruthy();
-    });
-  });
-}());'use strict';
-(function () {
-  describe('HomeController', function () {
-    //Initialize global variables
-    var scope, HomeController;
-    // Load the main application module
-    beforeEach(module(ApplicationConfiguration.applicationModuleName));
-    beforeEach(inject(function ($controller, $rootScope) {
-      scope = $rootScope.$new();
-      HomeController = $controller('HomeController', { $scope: scope });
-    }));
-    it('should expose the authentication service', function () {
-      expect(scope.authentication).toBeTruthy();
-    });
-  });
-}());'use strict';
 // Setting up route
 angular.module('explorer').config([
   '$stateProvider',
@@ -267,7 +237,10 @@ angular.module('explorer').controller('ExplorerController', [
   '$scope',
   'DataService',
   '$modal',
-  function (scope, dataService, modal) {
+  '$filter',
+  'messageBoxService',
+  'uploadService',
+  function (scope, dataService, modal, filter, messageBox, uploadService) {
     scope.currentFolder = null;
     scope.canBack = false;
     scope.path = [];
@@ -275,6 +248,7 @@ angular.module('explorer').controller('ExplorerController', [
     scope.percent = 0;
     scope.transferRate = 0;
     scope.currentBlob = null;
+    scope.currentUploader = null;
     scope.upload = function () {
       alert('cheers');
     };
@@ -393,7 +367,7 @@ angular.module('explorer').controller('ExplorerController', [
       });
     };
     function compareChildren(a, b) {
-      if (a.IsContainer != b.IsContainer) {
+      if (a.IsContainer !== b.IsContainer) {
         return a.IsContainer === true ? -1 : 1;
       }
       if (a.Name < b.Name)
@@ -465,6 +439,9 @@ angular.module('explorer').controller('ExplorerController', [
         scope.currentBlob = null;
         scope.$digest();
       }
+      if (scope.currentUploader !== null) {
+        scope.currentUploader.abort();
+      }
     };
     scope.onUploadFile = function () {
       var modalInstance = modal.open({
@@ -485,7 +462,8 @@ angular.module('explorer').controller('ExplorerController', [
         var taskInfo = scope.newTask(fileInfo.source.size);
         dataService.initBlob(scope.currentFolder.Id, fileInfo.name, fileInfo.source.size, taskInfo.step).then(function (blobIdObject) {
           var d = new Date();
-          var lastTime = d.getTime();
+          var startTime = d.getTime();
+          var lastTime = startTime;
           var lastLeft = taskInfo.left;
           scope.currentBlob = blobIdObject.id;
           var blob = fileInfo.source.slice(taskInfo.start, taskInfo.end);
@@ -519,6 +497,8 @@ angular.module('explorer').controller('ExplorerController', [
                     reader.readAsDataURL(blob);
                   } else {
                     scope.currentBlob = null;
+                    var secondsLeft = (currentTime - startTime) / 1000;
+                    messageBox.show('Transfer complete', 'Size: ' + filter('bytes')(taskInfo.total, 1) + '<br/>' + 'Chunks count: ' + taskInfo.index + '<br/>' + 'Duration: ' + secondsLeft + ' sec.' + '<br/>' + 'Rate: ' + filter('bytes')(taskInfo.total / secondsLeft, 1) + ' / sec');
                   }
                   scope.percent = prcent;
                   scope.$digest();
@@ -539,6 +519,71 @@ angular.module('explorer').controller('ExplorerController', [
         });
       }, function (exc) {
         var w = 0;
+      });
+    };
+    scope.onUploadFile2 = function () {
+      var modalInstance = modal.open({
+          templateUrl: 'modules/explorer/views/upload-file-view.client.view.html',
+          controller: 'UploadFileController',
+          resolve: {
+            children: function () {
+              return scope.currentFolder.Children;
+            }
+          }
+        });
+      modalInstance.result.then(function (fileInfo) {
+        var file = fileInfo.source;
+        if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+          alert('File API \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u0434\u0430\u043d\u043d\u044b\u043c \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u043e\u043c');
+          return;
+        }
+        var d = new Date();
+        var startTime = d.getTime();
+        var lastTime = startTime;
+        var lastTransferred = 0;
+        scope.currentUploader = new XMLHttpRequest();
+        var form = new FormData();
+        form.append(scope.currentFolder.Id, '');
+        form.append('file', file, file.name);
+        scope.currentUploader.upload.onprogress = function (event) {
+          var progress = event.lengthComputable ? event.loaded / event.total : 0;
+          scope.percent = progress;
+          var dd = new Date();
+          var currentTime = dd.getTime();
+          var interval = currentTime - lastTime;
+          lastTime = currentTime;
+          var transferred = event.lengthComputable ? event.loaded : 0;
+          var transferredBytes = transferred - lastTransferred;
+          lastTransferred = transferred;
+          scope.transferRate = transferredBytes * 1000 / interval;
+          scope.$digest();  //that._onProgressItem(item, progress);
+        };
+        scope.currentUploader.onload = function () {
+          var dd = new Date();
+          var currentTime = dd.getTime();
+          var secondsLeft = (currentTime - startTime) / 1000;
+          var fileInfo = JSON.parse(scope.currentUploader.response);
+          scope.currentFolder.Children.push(fileInfo);
+          scope.$digest();
+          scope.currentUploader = null;
+          messageBox.show('Transfer complete', 'Size: ' + filter('bytes')(fileInfo.Size, 1) + '<br/>' + 'Duration: ' + secondsLeft + ' sec.' + '<br/>' + 'Rate: ' + filter('bytes')(fileInfo.Size / secondsLeft, 1) + ' / sec');
+        };
+        scope.currentUploader.onerror = function () {
+          messageBox.show('Exception occured');
+          scope.currentUploader = null;
+        };
+        scope.currentUploader.onabort = function () {
+          messageBox.show('Transfer aborted');
+          scope.currentUploader = null;
+        };
+        // notice that the event handler is on xhr and not xhr.upload
+        scope.currentUploader.addEventListener('readystatechange', function (e) {
+          if (this.readyState === 4) {
+          }
+        });
+        scope.currentUploader.open('POST', '/explorer/UploadFile', true);
+        scope.currentUploader.withCredentials = false;
+        scope.currentUploader.send(form);
       });
     };
     scope.onUploadFolder = function () {
@@ -604,6 +649,20 @@ angular.module('explorer').controller('ItemOptionsController', [
     };
   }
 ]);'use strict';
+angular.module('explorer').controller('MessageBoxController', [
+  '$scope',
+  '$modalInstance',
+  'model',
+  function (scope, modalInstance, model) {
+    scope.dialogOptions = model;
+    scope.ok = function () {
+      modalInstance.close();
+    };
+    scope.cancel = function () {
+      modalInstance.dismiss('cancel');
+    };
+  }
+]);'use strict';
 angular.module('explorer').controller('NewFolderController', [
   '$scope',
   '$modalInstance',
@@ -626,12 +685,14 @@ angular.module('explorer').controller('NewFolderController', [
     };
     scope.checkName = function (candidate) {
       var result = true;
-      var length = children.length;
-      for (var i = 0; i < length; i++) {
-        var child = children[i];
-        if (child.Name === candidate) {
-          result = false;
-          break;
+      if (children !== null) {
+        var length = children.length;
+        for (var i = 0; i < length; i++) {
+          var child = children[i];
+          if (child.Name === candidate) {
+            result = false;
+            break;
+          }
         }
       }
       return result;
@@ -1225,6 +1286,182 @@ angular.module('explorer').service('DataService', [
       return this.httpRequest('POST', '/ReleaseBlob', { 'blobId': blobId });
     };
   }
+]);/**
+ * Created by Andrey on 25.08.2014.
+ */
+'use strict';
+angular.module('explorer').service('messageBoxService', [
+  '$modal',
+  function (modal) {
+    var dialogDefaults = {
+        backdrop: true,
+        keyboard: true,
+        backdropClick: true,
+        dialogFade: true,
+        templateUrl: '/app/partials/dialog.html'
+      };
+    var dialogOptions = {
+        closeButtonText: 'Close',
+        actionButtonText: 'OK',
+        headerText: 'Proceed?',
+        bodyText: 'Perform this action?'
+      };
+    this.show = function (title, message, buttons) {
+      var defaultButtons = [{
+            result: 'ok',
+            label: 'OK',
+            cssClass: 'btn-primary'
+          }];
+      var modalInstance = modal.open({
+          templateUrl: 'modules/explorer/views/message-box-view.html',
+          controller: 'MessageBoxController',
+          windowClass: 'css-center-modal',
+          resolve: {
+            model: function () {
+              return {
+                title: title,
+                message: message
+              };
+            }
+          }
+        });
+      return modalInstance;
+    };
+  }
+]);/**
+ * Created by Andrey on 31.08.2014.
+ */
+'use strict';
+angular.module('explorer').service('uploadService', [
+  '$http',
+  '$q',
+  '$timeout',
+  function ($http, $q, $timeout) {
+    function sendHttp(config) {
+      config.method = config.method || 'POST';
+      config.headers = config.headers || {};
+      config.transformRequest = config.transformRequest || function (data, headersGetter) {
+        if (window.ArrayBuffer && data instanceof window.ArrayBuffer) {
+          return data;
+        }
+        return $http.defaults.transformRequest[0](data, headersGetter);
+      };
+      var deferred = $q.defer();
+      if (window.XMLHttpRequest.__isShim) {
+        config.headers['__setXHR_'] = function () {
+          return function (xhr) {
+            if (!xhr)
+              return;
+            config.__XHR = xhr;
+            config.xhrFn && config.xhrFn(xhr);
+            xhr.upload.addEventListener('progress', function (e) {
+              deferred.notify(e);
+            }, false);
+            //fix for firefox not firing upload progress end, also IE8-9
+            xhr.upload.addEventListener('load', function (e) {
+              if (e.lengthComputable) {
+                deferred.notify(e);
+              }
+            }, false);
+          };
+        };
+      }
+      $http(config).then(function (r) {
+        deferred.resolve(r);
+      }, function (e) {
+        deferred.reject(e);
+      }, function (n) {
+        deferred.notify(n);
+      });
+      var promise = deferred.promise;
+      promise.success = function (fn) {
+        promise.then(function (response) {
+          fn(response.data, response.status, response.headers, config);
+        });
+        return promise;
+      };
+      promise.error = function (fn) {
+        promise.then(null, function (response) {
+          fn(response.data, response.status, response.headers, config);
+        });
+        return promise;
+      };
+      promise.progress = function (fn) {
+        promise.then(null, null, function (update) {
+          fn(update);
+        });
+        return promise;
+      };
+      promise.abort = function () {
+        if (config.__XHR) {
+          $timeout(function () {
+            config.__XHR.abort();
+          });
+        }
+        return promise;
+      };
+      promise.xhr = function (fn) {
+        config.xhrFn = function (origXhrFn) {
+          return function () {
+            origXhrFn && origXhrFn.apply(promise, arguments);
+            fn.apply(promise, arguments);
+          };
+        }(config.xhrFn);
+        return promise;
+      };
+      return promise;
+    }
+    this.upload = function (config) {
+      config.headers = config.headers || {};
+      config.headers['Content-Type'] = undefined;
+      config.transformRequest = config.transformRequest || $http.defaults.transformRequest;
+      var formData = new FormData();
+      var origTransformRequest = config.transformRequest;
+      var origData = config.data;
+      config.transformRequest = function (formData, headerGetter) {
+        if (origData) {
+          if (config.formDataAppender) {
+            for (var key in origData) {
+              var val = origData[key];
+              config.formDataAppender(formData, key, val);
+            }
+          } else {
+            for (var key in origData) {
+              var val = origData[key];
+              if (typeof origTransformRequest == 'function') {
+                val = origTransformRequest(val, headerGetter);
+              } else {
+                for (var i = 0; i < origTransformRequest.length; i++) {
+                  var transformFn = origTransformRequest[i];
+                  if (typeof transformFn == 'function') {
+                    val = transformFn(val, headerGetter);
+                  }
+                }
+              }
+              formData.append(key, val);
+            }
+          }
+        }
+        if (config.file != null) {
+          var fileFormName = config.fileFormDataName || 'file';
+          if (Object.prototype.toString.call(config.file) === '[object Array]') {
+            var isFileFormNameString = Object.prototype.toString.call(fileFormName) === '[object String]';
+            for (var i = 0; i < config.file.length; i++) {
+              formData.append(isFileFormNameString ? fileFormName : fileFormName[i], config.file[i], config.fileName && config.fileName[i] || config.file[i].name);
+            }
+          } else {
+            formData.append(fileFormName, config.file, config.fileName || config.file.name);
+          }
+        }
+        return formData;
+      };
+      config.data = formData;
+      return sendHttp(config);
+    };
+    this.http = function (config) {
+      return sendHttp(config);
+    };
+  }
 ]);'use strict';
 // Config HTTP Error Handling
 angular.module('users').config([
@@ -1380,81 +1617,4 @@ angular.module('users').factory('Users', [
   function ($resource) {
     return $resource('users', {}, { update: { method: 'PUT' } });
   }
-]);'use strict';
-(function () {
-  // Authentication controller Spec
-  describe('AuthenticationController', function () {
-    // Initialize global variables
-    var AuthenticationController, scope, $httpBackend, $stateParams, $location;
-    beforeEach(function () {
-      jasmine.addMatchers({
-        toEqualData: function (util, customEqualityTesters) {
-          return {
-            compare: function (actual, expected) {
-              return { pass: angular.equals(actual, expected) };
-            }
-          };
-        }
-      });
-    });
-    // Load the main application module
-    beforeEach(module(ApplicationConfiguration.applicationModuleName));
-    // The injector ignores leading and trailing underscores here (i.e. _$httpBackend_).
-    // This allows us to inject a service but then attach it to a variable
-    // with the same name as the service.
-    beforeEach(inject(function ($controller, $rootScope, _$location_, _$stateParams_, _$httpBackend_) {
-      // Set a new global scope
-      scope = $rootScope.$new();
-      // Point global variables to injected services
-      $stateParams = _$stateParams_;
-      $httpBackend = _$httpBackend_;
-      $location = _$location_;
-      // Initialize the Authentication controller
-      AuthenticationController = $controller('AuthenticationController', { $scope: scope });
-    }));
-    it('$scope.signin() should login with a correct user and password', function () {
-      // test expected GET request
-      $httpBackend.when('POST', '/auth/signin').respond(200, 'Fred');
-      scope.signin();
-      $httpBackend.flush();
-      // test scope value
-      expect(scope.authentication.user).toEqual('Fred');
-      expect($location.url()).toEqual('/');
-    });
-    it('$scope.signin() should fail to log in with nothing', function () {
-      $httpBackend.expectPOST('/auth/signin').respond(400, { 'message': 'Missing credentials' });
-      scope.signin();
-      $httpBackend.flush();
-      // test scope value
-      expect(scope.error).toEqual('Missing credentials');
-    });
-    it('$scope.signin() should fail to log in with wrong credentials', function () {
-      // Foo/Bar combo assumed to not exist
-      scope.authentication.user = 'Foo';
-      scope.credentials = 'Bar';
-      $httpBackend.expectPOST('/auth/signin').respond(400, { 'message': 'Unknown user' });
-      scope.signin();
-      $httpBackend.flush();
-      // test scope value
-      expect(scope.error).toEqual('Unknown user');
-    });
-    it('$scope.signup() should register with correct data', function () {
-      // test expected GET request
-      scope.authentication.user = 'Fred';
-      $httpBackend.when('POST', '/auth/signup').respond(200, 'Fred');
-      scope.signup();
-      $httpBackend.flush();
-      // test scope value
-      expect(scope.authentication.user).toBe('Fred');
-      expect(scope.error).toEqual(undefined);
-      expect($location.url()).toBe('/');
-    });
-    it('$scope.signup() should fail to register with duplicate Username', function () {
-      $httpBackend.when('POST', '/auth/signup').respond(400, { 'message': 'Username already exists' });
-      scope.signup();
-      $httpBackend.flush();
-      // test scope value
-      expect(scope.error).toBe('Username already exists');
-    });
-  });
-}());
+]);

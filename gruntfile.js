@@ -119,6 +119,9 @@ module.exports = function(grunt) {
 			}
 		},
 		env: {
+			build: {
+				NODE_ENV: 'production'
+			},
 			test: {
 				NODE_ENV: 'debug'
 			}

@@ -4,27 +4,31 @@
  */
 var init = require('./config/init')(),
 	config = require('./config/config'),
-	mongoose = require('mongoose');
+	db = require('./server/models/storage/db');
 
 /**
  * Main application entry file.
  * Please note that the order of loading is important.
  */
 
-// Bootstrap db connection
-var db = mongoose.connect(config.db);
+var db = db.init(config.db);
+db.then(function(){
 
-// Init the express application
-var app = require('./config/express')(db);
+	// Init the express application
+	var app = require('./config/express')();
 
-// Bootstrap passport config
-require('./config/passport')();
+	// Bootstrap passport config
+	require('./config/passport')();
 
-// Start the app by listening on <port>
-app.listen(config.port);
+	// Start the app by listening on <port>
+	app.listen(config.port);
 
-// Expose app
-exports = module.exports = app;
+	// Expose app
+	module.exports = app;
 
-// Logging initialization
-console.log('Application started on port ' + config.port);
+	// Logging initialization
+	console.log('Application started on port ' + config.port);
+})
+.catch(function(err){
+	console.log('Sequelize init failed: ' + err);
+});

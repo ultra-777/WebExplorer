@@ -3,9 +3,9 @@
 /**
  * Module dependencies.
  */
-var mongoose = require('mongoose'),
+var
 	passport = require('passport'),
-	User = mongoose.model('User'),
+	db = require('../models/storage/db'),
 	_ = require('lodash');
 
 /**
@@ -23,10 +23,13 @@ var getErrorMessage = function(err) {
 			default:
 				message = 'Something went wrong';
 		}
-	} else {
+	} else if (err.errors)  {
 		for (var errName in err.errors) {
-			if (err.errors[errName].message) message = err.errors[errName].message;
+			if (err.errors[errName].message)
+				message = err.errors[errName].message;
 		}
+	} else {
+		message = err.message;
 	}
 
 	return message;
@@ -36,38 +39,54 @@ var getErrorMessage = function(err) {
  * Signup
  */
 exports.signup = function(req, res) {
+
 	// For security measurement we remove the roles from the req.body object
 	delete req.body.roles;
+	var userSchema = db.getObject('user', 'security');
+	var user = userSchema.build(req.body);
 
-	// Init Variables
-	var user = new User(req.body);
-	var message = null;
-
-	// Add missing user fields
 	user.provider = 'local';
 	user.displayName = user.firstName + ' ' + user.lastName;
+	// Then save the user
+	user.save()
+		.then(function () {
+			var roleSchema = db.getObject('role', 'security');
+			roleSchema.findAll({where: ['name = ?', 'user']})
+				.then(function(roles){
+					var count = roles.length;
+					if (count > 0){
+						var targetRole = roles[0];
+						user.setRoles([targetRole])
+							.success(function(){
 
-	// Then save the user 
-	user.save(function(err) {
-		if (err) {
-			return res.send(400, {
+								// Remove sensitive data before login
+								user.password = undefined;
+								user.salt = undefined;
+
+								req.login(user, function (err) {
+									if (err) {
+										res.send(400, {
+											message: getErrorMessage(err)
+										});
+									} else {
+										res.jsonp(user);
+									}
+								});
+							})
+							.error(function(err){
+								res.send(400, {
+									message: getErrorMessage(err)
+								});
+							});
+					}
+				});
+		})
+		.catch(function (err) {
+			res.send(400, {
 				message: getErrorMessage(err)
 			});
-		} else {
-			// Remove sensitive data before login
-			user.password = undefined;
-			user.salt = undefined;
-
-			req.login(user, function(err) {
-				if (err) {
-					res.send(400, err);
-				} else {
-					res.jsonp(user);
-				}
-			});
-		}
-	});
-};
+		});
+}
 
 /**
  * Signin after passport authentication
@@ -140,18 +159,16 @@ exports.changePassword = function(req, res, next) {
 	var message = null;
 
 	if (req.user) {
-		User.findById(req.user.id, function(err, user) {
-			if (!err && user) {
+		var userSchema = db.getObject('user', 'security');
+		userSchema
+			.find(req.user.id)
+			.success(function(user){
 				if (user.authenticate(passwordDetails.currentPassword)) {
 					if (passwordDetails.newPassword === passwordDetails.verifyPassword) {
 						user.password = passwordDetails.newPassword;
-
-						user.save(function(err) {
-							if (err) {
-								return res.send(400, {
-									message: getErrorMessage(err)
-								});
-							} else {
+						user.updated = Date.now();
+						user.save()
+							.then(function() {
 								req.login(user, function(err) {
 									if (err) {
 										res.send(400, err);
@@ -161,8 +178,13 @@ exports.changePassword = function(req, res, next) {
 										});
 									}
 								});
-							}
-						});
+							})
+							.catch(function(err) {
+								return res.send(400, {
+									message: getErrorMessage(err)
+								});
+							});
+
 					} else {
 						res.send(400, {
 							message: 'Passwords do not match'
@@ -173,16 +195,17 @@ exports.changePassword = function(req, res, next) {
 						message: 'Current password is incorrect'
 					});
 				}
-			} else {
+			})
+			.error(function(err){
 				res.send(400, {
-					message: 'User is not found'
+					message: 'User is not found. ' + err
 				});
-			}
-		});
-	} else {
-		res.send(400, {
-			message: 'User is not signed in'
-		});
+			});
+
+		} else {
+			res.send(400, {
+				message: 'User is not signed in'
+			});
 	}
 };
 
