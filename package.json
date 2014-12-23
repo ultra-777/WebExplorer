@@ -47,7 +47,7 @@
         "memorystream": "latest",
 	  	"pg": "latest",
 	  	"pg-native": "latest",
-		"sequelize": "latest",
+		"sequelize": "latest"
     },
 	"devDependencies": {
 		"grunt-contrib-watch": "~0.6.1",
