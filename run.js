@@ -2,6 +2,9 @@
 /**
  * Module dependencies.
  */
+
+var cluster = require('cluster');
+
 var init = require('./config/init')(),
 	config = require('./config/config'),
 	db = require('./server/models/storage/db');
@@ -13,6 +16,10 @@ var init = require('./config/init')(),
 
 var db = db.init(config.db);
 db.then(function(){
+
+	// Count the machine's CPUs
+	var cpuCount = require('os').cpus().length;
+	console.log('-- CPU count: ' + cpuCount);
 
 	// Init the express application
 	var app = require('./config/express')();

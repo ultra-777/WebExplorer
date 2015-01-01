@@ -18,7 +18,7 @@ module.exports = function() {
 
 			var user = db.getObject('user', 'security');
 			var role = db.getObject('role', 'security');
-			console.log('-- strategies/local finding user: ' + username);
+			// console.log('-- strategies/local finding user: ' + username);
 			user.find(
 				{
 					where: { username: username },

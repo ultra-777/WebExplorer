@@ -265,7 +265,7 @@ module.exports = function(connect) {
                 });
         }
 
-        console.log('-- store get: ' + sid);
+        // console.log('-- store get: ' + sid);
     };
 
     /**
@@ -303,7 +303,7 @@ module.exports = function(connect) {
                 });
         }
 
-        console.log('-- store set: ' + sid);
+        // console.log('-- store set: ' + sid);
 };
 
     /**
@@ -327,7 +327,7 @@ module.exports = function(connect) {
         .catch(function(err){
             callback && callback(err);
         })
-        console.log('-- store destroy: ' + sid);
+        // console.log('-- store destroy: ' + sid);
     };
 
     /**
@@ -344,11 +344,11 @@ module.exports = function(connect) {
             .count()
             .then(function(count) {
                 callback && callback(null, count);
-                console.log('-- store length: ' + count);
+                // console.log('-- store length: ' + count);
             })
             .catch(function(err){
                 callback && callback(err);
-                console.log('-- store length: ' + err);
+                // console.log('-- store length: ' + err);
             });
     };
 
@@ -371,7 +371,7 @@ module.exports = function(connect) {
             .catch(function(err){
                 callback && callback(err);
             })
-        console.log('-- store clear: ');
+        // console.log('-- store clear: ');
     };
 
     return Impl;

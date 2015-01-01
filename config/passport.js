@@ -19,7 +19,7 @@ module.exports = function() {
 
 		var cachedUser = uc.get(id);
 		if (cachedUser){
-			console.log('-- cached user found: ' + id);
+			// console.log('-- cached user found: ' + id);
 			done(null, cachedUser);
 			return;
 		}

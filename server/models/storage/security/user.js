@@ -69,7 +69,7 @@ function model(sequelize, DataTypes) {
                                     10000,
                                     64).toString('base64');
                         }
-                        console.log(" -- " + rawPassword + " + " + this.salt.toString('base64') + " = " + result );
+                        // console.log(" -- " + rawPassword + " + " + this.salt.toString('base64') + " = " + result );
                         return result;
                     },
 
