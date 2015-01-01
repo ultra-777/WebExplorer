@@ -6,7 +6,8 @@
 
 var url = require('url'),
     db = require('../server/models/storage/db'),
-    Session = require('express-session/session/session');
+    Session = require('express-session/session/session'),
+    toString = require('../server/common/stringify');
 
 
 /**
@@ -21,85 +22,12 @@ function optionsImpl(sourceOptions){
     return resultOptions;
 };
 
-var options = null;
-
-function flatStringify(x, depth) {
-
-    var dump = '';
-    var isArray = Array.isArray(x);
-
-    function dumpElement(currentDump, currentElementKey, currentElementValue, currentDepth){
-
-        var currentType = typeof currentElementValue;
-        if (currentElementValue instanceof Date)
-            currentType = 'date';
-        var currentPresentation = undefined;
-
-        if (currentElementValue === null)
-            currentPresentation = 'null';
-        else {
-            switch (currentType) {
-                case 'object':
-                    if (!currentDepth || currentDepth > 1)
-                        currentPresentation =
-                            flatStringify(
-                                currentElementValue,
-                                currentDepth ?
-                                    (currentDepth - 1)
-                                    : currentDepth);
-                    break;
-                case 'boolean':
-                case 'number':
-                    currentPresentation = JSON.stringify(currentElementValue);
-                    break;
-                case 'string':
-                    currentPresentation = JSON.stringify(currentElementValue);
-                    break;
-                case 'date':
-                    currentPresentation = '\"' + currentElementValue.toJSON() + '\"';
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (currentPresentation !== undefined){
-            if (!currentDump)
-                currentDump = '';
-
-            if (currentDump.length > 0)
-                currentDump = currentDump + ',';
-
-            if (!isArray)
-                currentDump = currentDump + '\"' + currentElementKey + '\"' + ': ';
-            currentDump = currentDump + currentPresentation;
-        }
-
-        return currentDump;
-    };
-
-    var index = 0;
-    var idElement = x['id'];
-    if (idElement)
-        dump = dumpElement(dump, 'id', idElement, depth);
-    for(var i in x) {
-        dump = dumpElement(dump, i, x[i], depth);
-    }
-
-    if (dump === '')
-        return null;
-
-    if (isArray)
-        return '[' + dump + ']';
-    return '{' + dump + '}';
-}
-
-
+var _options = null;
 
 module.exports = function(connect) {
     var Store = connect.Store || connect.session.Store;
     var _sessions = new Object();
-    options = new optionsImpl(connect.options);
+    _options = new optionsImpl(connect.options);
 
     function getCachedSession(sid){
 
@@ -150,6 +78,7 @@ module.exports = function(connect) {
                 .catch(function (err) {
                     callback && callback(err);
                 });
+
         }
         else
             callback && callback(null, dbSession);
@@ -162,7 +91,7 @@ module.exports = function(connect) {
 
 
         if (session && session.cookie){
-            var expiration = new Date(today.getTime() + options.defaultExpirationTime);
+            var expiration = new Date(today.getTime() + _options.defaultExpirationTime);
             session.cookie.expires = expiration;
         }
 
@@ -173,11 +102,11 @@ module.exports = function(connect) {
 
         if (dbSession.updated){
             var diff = Math.abs(today - dbSession.updated);
-            if (options.updateTimeout < diff)
+            if (_options.updateTimeout < diff)
                 needFlush = true;
         }
 
-        var newData = JSON.parse(flatStringify(session, 2));
+        var newData = JSON.parse(toString(session, 2));
 
         if (!needFlush){
             if (dbSession.data) {
@@ -232,7 +161,7 @@ module.exports = function(connect) {
      */
 
     function Impl() {
-        this.defaultExpirationTime = options.defaultExpirationTime;
+
     };
 
     Impl.prototype.__proto__ = Store.prototype;
