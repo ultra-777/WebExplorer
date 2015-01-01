@@ -17,7 +17,11 @@ var express = require('express'),
 	consolidate = require('consolidate'),
 	path = require('path'),
 	store = require('./store')({
-		session: session
+		session: session,
+		options: {
+			defaultExpirationTime:  config.sessionExpirationTime
+			,updateTimeout: config.sessionUpdateTimeout
+		}
 	});
 
 module.exports = function() {
@@ -89,12 +93,10 @@ module.exports = function() {
 	app.use(session({
 		secret: config.sessionSecret
         ,cookie: {
-            path: '/',
-            httpOnly: true,
-			//expires: false,
-            maxAge: 14 * 24 * 60 * 60 * 1000 //milliseconds
+            path: '/'
+            , httpOnly: true
+			, overwrite: true
 		}
-
 		,store: new store()
 	}));
 
@@ -141,6 +143,7 @@ module.exports = function() {
 			error: 'Not Found'
 		});
 	});
+
 
 	return app;
 };

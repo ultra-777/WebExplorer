@@ -104,6 +104,7 @@ exports.signin = function(req, res, next) {
 				if (err) {
 					res.send(400, err);
 				} else {
+
 					res.jsonp(user);
 				}
 			});

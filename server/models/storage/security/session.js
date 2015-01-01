@@ -10,8 +10,7 @@ function model(sequelize, DataTypes) {
             "session",
             {
                 id: { type: DataTypes.STRING(255), primaryKey: true, allowNull: false },
-                data: { type: DataTypes.STRING(2048) },
-                expiration:  { type: DataTypes.DATE },
+                data: { type: DataTypes.JSON },
                 addressInitial: { type: DataTypes.STRING(256) },
                 addressLast: { type: DataTypes.STRING(256), allowNull: true },
                 created: { type: DataTypes.DATE },
@@ -23,7 +22,6 @@ function model(sequelize, DataTypes) {
 
                 schema: "security",
 
-                // define the table's name
                 tableName: 'Sessions'
             }
 

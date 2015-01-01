@@ -16,16 +16,13 @@ function cutBeginning(source, template){
 }
 
 function path2local(candidate){
-    console.log(candidate);
+    //console.log(candidate);
     if (candidate === null)
         return null;
     if ((candidate === '') || (candidate === '.'))
         return config.storage;
 
     candidate = cutBeginning(candidate, config.rootAlias);
-
-    console.log(config.storage);
-    console.log(pth.join(config.storage, candidate));
 
     return pth.join(config.storage, candidate);
 }

@@ -11,6 +11,8 @@ module.exports = {
     rootAlias: process.env.ROOT_ALIAS || '$',
 	templateEngine: 'swig',
 	sessionSecret: '724833F4-1338-4325-A702-DB630901D394',
+	sessionExpirationTime: 1000 * 60 * 10,
+	sessionUpdateTimeout: 1000 * 60,
 	sessionCollection: 'sessions',
 	assets: {
 		lib: {

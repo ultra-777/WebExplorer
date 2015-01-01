@@ -21,8 +21,14 @@ exports.index = function(req, res, next) {
 };
 
 exports.folder = function(req, res, next) {
-    var result = fs.GetItem(req.body.id);
-    res.send(result.toJson());
+    if (req.user) {
+        var result = fs.GetItem(req.body.id);
+        res.send(result.toJson());
+    }
+    else
+        res.send(401, {
+            message: 'User is not signed in'
+        });
 };
 
 exports.root = function(req, res, next) {

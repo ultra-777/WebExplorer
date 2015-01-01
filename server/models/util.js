@@ -62,7 +62,6 @@ function flatStringify2(x) {
     if (isArray)
         return '[' + dump + ']';
     return '{' + dump + '}';
-    //return JSON.stringify(x);
 }
 
 

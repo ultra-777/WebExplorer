@@ -84,10 +84,10 @@ function model(sequelize, DataTypes) {
 };
 
 function configure(fabrique){
-    var user = fabrique.getObject('user');
-    var role = fabrique.getObject('role');
-    user.hasMany(role, { as: {singular: 'role', plural: 'roles'}, through: 'UserRoles' });
-    role.hasMany(user, { as: {singular: 'user', plural: 'users'}, through: 'UserRoles' });
+    var user = fabrique.getObject('user', 'security');
+    var role = fabrique.getObject('role', 'security');
+    user.belongsToMany(role, { as: {singular: 'role', plural: 'roles'}, through: 'UserRoles' });
+    role.belongsToMany(user, { as: {singular: 'user', plural: 'users'}, through: 'UserRoles' });
 }
 
 

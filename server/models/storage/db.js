@@ -10,7 +10,6 @@ var
     config = require('../../../config/config');
 
 var _sequelize = null;
-var _objects = [];
 
 function initSequelize(uri){
     _sequelize =
@@ -32,7 +31,9 @@ function initSequelize(uri){
                 var model = reference.model;
                 if ((model !== undefined) && (model !== null)) {
                     var schemaObject = model(_sequelize, Sequelize);
-                        _objects.push(schemaObject)
+                    //schemaObject.name = schemaObject
+                    if ((schemaObject.options) && (schemaObject.options.schema))
+                        schemaObject.name = schemaObject.options.schema + '.' + schemaObject.name;
                     //console.log('-- model: ' + resolvedPath);
                 }
 
@@ -53,22 +54,15 @@ function initSequelize(uri){
             configure(this);
         }
     }
+    configuration = null;
     //console.log('-- sequelize init complete');
     return _sequelize.sync();
 }
 
 function getObject(objectName, schemaName){
-    var totalCount = _objects.length;
-    for (var i = 0; i < totalCount; i++){
-        var object = _objects[i];
-        if ((schemaName !== undefined) && (schemaName !== null)){
-            if (object.options.schema !== schemaName)
-                continue;
-        }
-        if (object.name === objectName)
-            return object;
-    }
-    return null;
+
+    var name = schemaName ? (schemaName + '.' + objectName) : objectName;
+    return _sequelize.model(name);
 }
 
 module.exports = {

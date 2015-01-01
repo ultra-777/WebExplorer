@@ -8,7 +8,7 @@ function model(sequelize, DataTypes) {
         sequelize.define(
             "role",
             {
-                name: { type: DataTypes.STRING }
+                name: { type: DataTypes.STRING, unique: true }
             },
             {
                 // don't add the timestamp attributes (updatedAt, createdAt)
