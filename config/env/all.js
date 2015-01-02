@@ -7,6 +7,7 @@ module.exports = {
 		keywords: 'Cheers'
 	},
 	port: process.env.PORT || 80,
+	minNodesCount: 4,
     storage: process.env.STORAGE_PATH || 'data',
     rootAlias: process.env.ROOT_ALIAS || '$',
 	templateEngine: 'swig',
@@ -14,6 +15,9 @@ module.exports = {
 	sessionExpirationTime: 1000 * 60 * 10,
 	sessionUpdateTimeout: 1000 * 60,
 	sessionCollection: 'sessions',
+	messageUpdateUser: 'updateUser',
+	messageUpdateSession: 'updateSession',
+	messageUpdateBlob: 'updateBlob',
 	assets: {
 		lib: {
 			css: [

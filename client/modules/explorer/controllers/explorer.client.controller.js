@@ -299,7 +299,7 @@ angular.module('explorer').controller('ExplorerController', [
 									data = data.substr(data.lastIndexOf(',') + 1);
 									dataService.addBlobChunk(scope.currentBlob, taskInfo.index, data)
 										.then(function(result) {
-
+											if (result && result.id) {
 												scope.currentBlob = result.id;
 												var prcent = result.percent;
 												var isComplete = result.isComplete;
@@ -310,42 +310,48 @@ angular.module('explorer').controller('ExplorerController', [
 
 												taskInfo.applyNewData(evt.loaded);
 
-                                                var dd = new Date();
-                                                var currentTime = dd.getTime();
-                                                var interval = currentTime - lastTime;
-                                                if (interval >= (1000)){
-                                                    lastTime = currentTime;
-                                                    var currentLeft = taskInfo.left;
-                                                    var transferredBytes = lastLeft - currentLeft;
-                                                    lastLeft = currentLeft;
-                                                    scope.transferRate = transferredBytes;
-                                                }
+												var dd = new Date();
+												var currentTime = dd.getTime();
+												var interval = currentTime - lastTime;
+												if (interval >= (1000)) {
+													lastTime = currentTime;
+													var currentLeft = taskInfo.left;
+													var transferredBytes = lastLeft - currentLeft;
+													lastLeft = currentLeft;
+													scope.transferRate = transferredBytes;
+												}
 
 												if (taskInfo.left > 0) {
 													blob = fileInfo.source.slice(taskInfo.start, taskInfo.end);
 													reader.readAsDataURL(blob);
 												} else {
 													scope.currentBlob = null;
-                                                    var secondsLeft = (currentTime - startTime) / 1000;
+													var secondsLeft = (currentTime - startTime) / 1000;
 
-                                                    messageBox.show(
-                                                        'Transfer complete',
-                                                        'Size: ' + filter('bytes')(taskInfo.total, 1)  + '<br/>' +
-                                                        'Chunks count: ' + taskInfo.index + '<br/>' +
-                                                        'Duration: ' + secondsLeft + ' sec.' + '<br/>' +
-                                                        'Rate: ' + filter('bytes')((taskInfo.total / secondsLeft), 1) + ' / sec'
-                                                    );
+													messageBox.show(
+														'Transfer complete',
+														'Size: ' + filter('bytes')(taskInfo.total, 1) + '<br/>' +
+														'Chunks count: ' + taskInfo.index + '<br/>' +
+														'Duration: ' + secondsLeft + ' sec.' + '<br/>' +
+														'Rate: ' + filter('bytes')((taskInfo.total / secondsLeft), 1) + ' / sec'
+													);
 												}
 
 												scope.percent = prcent;
 												scope.$digest();
-											},
-											function(result) {
-                                                dataService.releaseBlob(scope.currentBlob);
+											}
+											else {
+												dataService.releaseBlob(scope.currentBlob);
 												scope.currentBlob = null;
-                                                alert(result);
-                                                scope.$digest();
-											});
+												scope.$digest();
+											}
+										},
+										function(result) {
+											dataService.releaseBlob(scope.currentBlob);
+											scope.currentBlob = null;
+											alert(result);
+											scope.$digest();
+										});
 
 
 								} else {

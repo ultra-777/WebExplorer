@@ -5,12 +5,14 @@
  */
 
 var fs = require('../models/fs.js');
-var bl = require('../models/blob.js');
 var multiparty = require("multiparty");
 var fss = require('fs');
 var util = require('util');
 var ms = require('memorystream');
 var map = require('../models/map.js');
+var db = require('../models/storage/db');
+var config = require('../../config/config');
+
 
 
 exports.index = function(req, res, next) {
@@ -50,53 +52,139 @@ exports.download = function(req, res, next) {
     fs.Download(req.query.id, res);
 };
 
-var _blobs = {};
+var _blobSchema = db.getObject('blob', 'fileSystem');
+var _blobInstances = new Object();
+process.on('message', function(msg){
+    if (msg.cmd && msg.cmd == config.messageUpdateBlob){
+        console.log('--node: %d. drop blob: %s', process.pid, msg.id);
+        delete _blobInstances[msg.id];
+    }
+});
 
 exports.initBlob = function(req, res, next){
-    var newBlob =
-        new bl.Blob(
-            req.body.folderId,
-            req.body.fileName,
-            req.body.totalSize,
-            req.body.chunkSize);
-    _blobs[newBlob.id] = newBlob;
-     res.jsonp({ id: newBlob.id });
+
+    var blobInstance = _blobSchema.build();
+    blobInstance.file = req.body.fileName;
+    blobInstance.folder = req.body.folderId;
+    blobInstance.totalSize = req.body.totalSize;
+    blobInstance.chunkSize = req.body.chunkSize;
+    blobInstance.save()
+        .then(function () {
+            res.jsonp({ id: blobInstance.id });
+        })
+        .catch(function(err){
+            res.send(500, err);
+        });
+
 };
 
 exports.addBlobChunk = function(req, res, next){
-    var blob = _blobs[req.body.blobId]
-    blob.addChunk(
-        req.body.chunkIndex,
-        req.body.data);
 
-    var file = fs.GetItem(blob.filePath());
+    var cachedBlobInstance = _blobInstances[req.body.blobId];
+    if (cachedBlobInstance){
+        console.log('--blob instance found: %s process: %d', req.body.blobId, process.pid);
 
-    var result =
+        addChunk2Instance(
+            cachedBlobInstance,
+            req.body.chunkIndex,
+            req.body.data,
+            function(result){
+                res.jsonp(result);
+            });
+    }
+    else {
+        console.log('--blob instance not found: %s process: %d', req.body.blobId, process.pid);
+
+        _blobSchema.find(req.body.blobId)
+            .then(function (blobInstance) {
+
+                if (blobInstance) {
+                    _blobInstances[req.body.blobId] = blobInstance;
+
+                    addChunk2Instance(
+                        blobInstance,
+                        req.body.chunkIndex,
+                        req.body.data,
+                        function(result){
+                            res.jsonp(result);
+                        });
+                }
+                else
+                    res.jsonp(null);
+
+            })
+            .catch(function (err) {
+                res.send(500, err);
+            });
+    }
+}
+
+function addChunk2Instance(blobInstance, chunkIndex, data, callback){
+    if (blobInstance) {
+        blobInstance.addChunk(
+            chunkIndex,
+            data);
+
+        var file =
+            fs.GetItem(
+                blobInstance.getRelativePath());
+
+        var result =
         {
-            id: blob.id,
-            percent: blob.percent(),
-            isComplete: blob.isOk(),
+            id: blobInstance.id,
+            percent: blobInstance.percent,
+            isComplete: blobInstance.isOk,
             file: file
         };
 
-    if (blob.isOk()){
-        delete _blobs[blob.Id];
-        blob.dispose();
-        blob = null;
-    };
-    res.jsonp(result);
+        if (blobInstance.isOk) {
+            dropBlob(blobInstance.id, function (state, error) {
+                callback(result);
+            });
+            return;
+        };
+        callback(result);
+    }
+    else
+        callback(null);
+}
+
+function dropBlob(id, callback){
+
+    _blobSchema.find(id)
+        .then(function (blobInstance) {
+            if (blobInstance) {
+                blobInstance.destroy()
+                    .then(function (affectedRows) {
+                        var existingInstance = _blobInstances[id];
+                        if (existingInstance) {
+                            existingInstance.release();
+                            delete _blobInstances[id];
+                            existingInstance = null;
+                            callback && callback(true, null);
+                            process.send && process.send({broadcast: true, cmd: config.messageUpdateBlob, id: id});
+                        }
+                        else
+                            callback && callback(false, null);
+                    })
+                    .catch(function (err) {
+                        callback && callback(false, err);
+                    });
+            }
+            else
+                callback && callback(false, null);
+        })
+        .catch(function (err) {
+            callback && callback(false, err);
+        });
+
 }
 
 exports.releaseBlob = function(req, res, next){
-    var blob = _blobs[req.body.blobId];
-    if (blob) {
-        delete _blobs[blob.Id];
-        blob.dispose();
-        blob = null;
-        res.jsonp(true);
-    }
-    else
-        res.jsonp(false);
+
+    dropBlob(req.body.blobId, function(result, error){
+        res.jsonp(result);
+    });
 }
 
 exports.uploadFile = function(req, res, next){

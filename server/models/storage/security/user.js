@@ -52,10 +52,11 @@ function model(sequelize, DataTypes) {
                     },
 
                     onBeforeUpdate: function (user, fn) {
+                        /*
                         if (user.password && user.password.length > 6) {
                             user.password = user.hashPassword(user.password);
                         }
-
+                        */
                         return;
                     },
 

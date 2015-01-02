@@ -2,23 +2,23 @@
  * Created by Andrey on 25.12.2014.
  */
 
-var _users = [];
+var config = require('./config');
+var _users = new Object();
+
+process.on('message', function(msg){
+    if (msg.cmd && msg.cmd == config.messageUpdateUser){
+        console.log('--node: %d. drop user: %d', process.pid, msg.id);
+        delete _users[msg.id];
+    }
+})
 
 function add(user){
-    _users.splice(0, 0, user);
+    _users[user.id] = user;
 }
 
 function get(id){
-    var count = _users.length;
-    for (var i = 0; i < count; i++){
-        var candidate = _users[i];
-        if (candidate.id === id){
-            return candidate;
-        }
-    }
-    return null;
+    return _users[id];
 }
-
 
 
 module.exports = {

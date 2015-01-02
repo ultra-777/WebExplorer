@@ -8,8 +8,11 @@
 var fs = require('fs');
 var exp = require('./explorer.js');
 var map = require('./map.js');
+var pth = require('path');
 
-
+var rootPath = map.pathToLocal('');
+if (!fs.existsSync(rootPath))
+    fs.mkdirSync(rootPath, '0600');
 
 function getFile(path, stat){
 
@@ -91,7 +94,7 @@ function deleteItem(path)
     if (fs.existsSync(path)) {
         var stat = fs.statSync(path);
         if (stat.isDirectory()){
-            fs.rmdirSync(path);
+            dropDirectory(path);
         }
         else{
             fs.unlink(path);
@@ -100,6 +103,25 @@ function deleteItem(path)
     }
     return false;
 }
+
+function dropDirectory(path) {
+    var list = fs.readdirSync(path);
+    for(var i = 0; i < list.length; i++) {
+        var item = pth.join(path, list[i]);
+        var stat = fs.statSync(item);
+        if(item == "." || item == "..") {
+            // pass these files
+        } else if(stat.isDirectory()) {
+            // rmdir recursively
+            dropDirectory(item);
+        } else {
+            fs.unlinkSync(item);
+        }
+    }
+    fs.rmdirSync(path);
+};
+
+
 
 function downloadFile(path, res){
     path = map.pathToLocal(path);

@@ -7,7 +7,6 @@
 var pth = require('path');
 var config = require('../../config/config');
 
-
 function cutBeginning(source, template){
     if(source.indexOf(template) === 0){
         return source.substring(template.length);

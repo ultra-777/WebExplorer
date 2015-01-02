@@ -5,6 +5,7 @@
 
 
 var url = require('url'),
+    config = require('./config'),
     db = require('../server/models/storage/db'),
     Session = require('express-session/session/session'),
     toString = require('../server/common/stringify');
@@ -29,6 +30,20 @@ module.exports = function(connect) {
     var _sessions = new Object();
     _options = new optionsImpl(connect.options);
 
+    process.on('message', function(msg){
+        if (msg.cmd){
+            switch (msg.cmd){
+                case config.messageUpdateUser:
+                    clearSessions();
+                    break;
+                case config.messageUpdateSession:
+                    console.log('--node: %d. drop session: %s', process.pid, msg.id);
+                    dropCachedSession(msg.id);
+                    break;
+            };
+        }
+    });
+
     function getCachedSession(sid){
 
         var cachedSession = _sessions[sid];
@@ -44,8 +59,22 @@ module.exports = function(connect) {
     }
 
     function dropCachedSession(sid){
-        if (_sessions[sid])
+        if (_sessions[sid]) {
             delete _sessions[sid];
+            process.send && process.send({broadcast: true, cmd: config.messageUpdateSession, id: sid});
+        }
+        //console.log('-- store new cached session: ' + session.id + ' of ' + _sessions.length);
+    }
+
+    function clearSessions(){
+        var clone = new Object();
+        for(var s in _sessions) {
+            clone[s] = _sessions[s];
+        }
+        for(var s in clone) {
+            delete _sessions[clone[s].id];
+        }
+        delete clone;
         //console.log('-- store new cached session: ' + session.id + ' of ' + _sessions.length);
     }
 
@@ -73,6 +102,7 @@ module.exports = function(connect) {
             dbSession
                 .save()
                 .then(function () {
+                    process.send && process.send({broadcast: true, cmd: config.messageUpdateSession, id: session.id});
                     callback && callback(null);
                 })
                 .catch(function (err) {
@@ -245,17 +275,20 @@ module.exports = function(connect) {
 
     Impl.prototype.destroy = function(sid, callback) {
         var schemaSession = db.getObject('session', 'security');
-        schemaSession.destroy(
-            {id: sid},
-            {truncate: true}
-        )
-        .then(function(affectedRows){
-            dropCachedSession(sid);
-            callback && callback();
-        })
-        .catch(function(err){
-            callback && callback(err);
-        })
+        schemaSession.find(sid)
+            .then(function(session){
+                session.destroy()
+                    .then(function(affectedRows){
+                        dropCachedSession(sid);
+                        callback && callback();
+                    })
+                    .catch(function(err){
+                        callback && callback(err);
+                    })
+            })
+            .catch(function(err){
+                callback && callback(err);
+            });
         // console.log('-- store destroy: ' + sid);
     };
 
@@ -295,6 +328,7 @@ module.exports = function(connect) {
             {truncate: true}
         )
             .then(function(affectedRows){
+                clearSessions();
                 callback && callback();
             })
             .catch(function(err){

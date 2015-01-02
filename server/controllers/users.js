@@ -5,6 +5,7 @@
  */
 var
 	passport = require('passport'),
+	config = require('../../config/config'),
 	db = require('../models/storage/db'),
 	_ = require('lodash');
 
@@ -129,25 +130,22 @@ exports.update = function(req, res) {
 		user.updated = Date.now();
 		user.displayName = user.firstName + ' ' + user.lastName;
 
-		user.save(function(err) {
-			if (err) {
-				return res.send(400, {
-					message: getErrorMessage(err)
-				});
-			} else {
+		user.save()
+			.then(function () {
 				req.login(user, function(err) {
 					if (err) {
 						res.send(400, err);
 					} else {
+						process.send && process.send({broadcast: true, cmd: config.messageUpdateUser, id: user.id});
 						res.jsonp(user);
 					}
+					});
+				})
+			.catch(function(err){
+				return res.send(400, {
+					message: getErrorMessage(err)
 				});
-			}
-		});
-	} else {
-		res.send(400, {
-			message: 'User is not signed in'
-		});
+			});
 	}
 };
 
@@ -166,7 +164,7 @@ exports.changePassword = function(req, res, next) {
 			.success(function(user){
 				if (user.authenticate(passwordDetails.currentPassword)) {
 					if (passwordDetails.newPassword === passwordDetails.verifyPassword) {
-						user.password = passwordDetails.newPassword;
+						user.password = user.hashPassword(passwordDetails.newPassword);
 						user.updated = Date.now();
 						user.save()
 							.then(function() {
