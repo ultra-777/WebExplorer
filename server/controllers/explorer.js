@@ -110,7 +110,7 @@ exports.addBlobChunk = function(req, res, next){
                         });
                 }
                 else
-                    res.jsonp(null);
+                    res.jsonp({error: 'instance is absent'});
 
             })
             .catch(function (err) {
