@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-	db: 'postgres://postgres:password@localhost:5432/Test',
+	db: 'postgres://postgres:password@localhost:5432/site',
 	app: {
 		title: 'Cheers - Development'
 	},

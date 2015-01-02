@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-	db: process.env.POSTGRES_URI || 'postgres://postgres:postgres@localhost:5432/site',
+	db: process.env.POSTGRES_URI || 'postgres://postgres:password@localhost:5432/site',
 	assets: {
 		lib: {
 			css: [
