@@ -84,9 +84,9 @@ function model(sequelize, DataTypes) {
     return User;
 };
 
-function configure(fabrique){
-    var user = fabrique.getObject('user', 'security');
-    var role = fabrique.getObject('role', 'security');
+function configure(getObjectHandler){
+    var user = getObjectHandler('user', 'security');
+    var role = getObjectHandler('role', 'security');
     user.belongsToMany(role, { as: {singular: 'role', plural: 'roles'}, through: 'UserRoles' });
     role.belongsToMany(user, { as: {singular: 'user', plural: 'users'}, through: 'UserRoles' });
 }

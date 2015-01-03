@@ -7,7 +7,7 @@ module.exports = {
 		keywords: 'Cheers'
 	},
 	port: process.env.PORT || 80,
-	minNodesCount: 4,
+	minNodesCount: 1,
     storage: process.env.STORAGE_PATH || 'data',
     rootAlias: process.env.ROOT_ALIAS || '$',
 	templateEngine: 'swig',

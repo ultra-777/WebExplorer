@@ -2,6 +2,9 @@
 
 module.exports = {
 	db: process.env.POSTGRES_URI || 'postgres://postgres:password@localhost:5432/site',
+	minNodesCount: 8,
+	sessionExpirationTime: 1000 * 60 * 60, // 1h
+	sessionUpdateTimeout: 1000 * 60,
 	assets: {
 		lib: {
 			css: [

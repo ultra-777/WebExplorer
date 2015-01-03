@@ -51,11 +51,14 @@ function initSequelize(uri){
      for (var i = 0; i < configCount; i++){
         var configure = configuration[i];
         if ((configure !== undefined) && (configure !== null)){
-            configure(this);
+            configure(getObject);
         }
     }
     configuration = null;
-    //console.log('-- sequelize init complete');
+}
+
+function initSequelizeAndSynq(uri){
+    initSequelize(uri);
     return _sequelize.sync();
 }
 
@@ -67,6 +70,7 @@ function getObject(objectName, schemaName){
 
 module.exports = {
     init: initSequelize,
+    initAndSynq: initSequelizeAndSynq,
     getObject: getObject,
     Sequelize: Sequelize
 };
