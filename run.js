@@ -9,6 +9,49 @@ var init = require('./config/init')();
 var config = require('./config/config');
 var db = require('./server/models/storage/db');
 
+if (process.env.NODE_ENV === 'production') {
+	console.log = function(){};
+}
+
+var stateTracker = function (period, deviationRate, callback) {
+
+	var initialValue = null;
+	var history = new Object();
+
+	this.addValue = function(newValue) {
+
+		if (!initialValue)
+			initialValue = newValue;
+
+		var currentMoment = (new Date()).getTime();
+		history[currentMoment] = newValue;
+		var lastSuitableMoment = currentMoment - period;
+
+		var currentValue = null;
+		var minValue = null;
+		for (var dt in history) {
+			var moment = Number(dt);
+			if (moment < lastSuitableMoment){
+				delete history[dt]
+				continue;
+			}
+
+			currentValue = history[dt];
+			if (minValue){
+				if (minValue > currentValue)
+					minValue = currentValue;
+			}
+			else
+				minValue = currentValue;
+		}
+
+		if (minValue && initialValue && deviationRate && callback){
+			var borderValue = initialValue * deviationRate;
+			if (borderValue < minValue)
+				callback(minValue);
+		}
+	}
+};
 
 /**
  * Main application entry file.
@@ -16,114 +59,135 @@ var db = require('./server/models/storage/db');
  */
 
 
-	if (cluster.isMaster) {
+if (cluster.isMaster) {
 
-		db
-			.initAndSynq(config.db)
-			.then(function() {
-				var toString = require('./server/common/stringify');
-				var subscribeChild = function (child) {
-					child.on('message', function (msg) {
-						if (msg.broadcast) {
-							console.log('-- broadcast message from child (%d): %s', child.process.pid, toString(msg));
+	db
+		.initAndSynq(config.db)
+		.then(function() {
+			var toString = require('./server/common/stringify');
+			var subscribeChild = function (child) {
+				child.on('message', function (msg) {
+					if (msg.broadcast) {
+						console.log('-- broadcast message from child (%d): %s', child.process.pid, toString(msg));
 
-							Object.keys(cluster.workers).forEach(function (id) {
-								if (id != child.id) {
-									cluster.workers[id].send(msg);
-								}
-							});
-						}
-					});
-				};
-
-				var debug = process.execArgv.indexOf('--debug') !== -1;
-				cluster.setupMaster({
-					execArgv: process.execArgv.filter(function (s) {
-						return s !== '--debug'
-					})
-				});
-
-
-				// Count the machine's CPUs
-				var cpuCount = require('os').cpus().length;
-
-				var config = require('./config/config');
-				if (cpuCount < config.minNodesCount)
-					cpuCount = config.minNodesCount;
-
-
-				console.log('-- CPU count: ' + cpuCount);
-
-				// Create a worker for each CPU
-				var debugPort = 5859;
-				var portIndex = debugPort;
-				for (var i = 0; i < cpuCount; i += 1) {
-					setTimeout(function () {
-						if (debug)
-							cluster.settings.execArgv.push('--debug=' + (++portIndex));
-						subscribeChild(cluster.fork());
-						if (debug)
-							cluster.settings.execArgv.pop();
-					}, i * 5000)
-				}
-
-				console.log('-- Master started: ' + process.pid);
-
-				cluster.on('online', function (worker) {
-					console.log('--worker %s online', worker.id);
-				});
-				cluster.on('listening', function (worker, addr) {
-					console.log('--worker %s listening on %s:%d', worker.id, addr.address, addr.port);
-				});
-				cluster.on('disconnect', function (worker) {
-					console.log('--worker %s disconnected', worker.id);
-				});
-
-
-				/**/
-				cluster.on('exit', function (worker, code, signal) {
-					if (portIndex > (debugPort + (10 * cpuCount)))
-						portIndex = debugPort;
-
-					if (signal) {
-						console.log('Worker died with signal (ID: %d, PID: %d)', worker.id, worker.process.pid);
+						Object.keys(cluster.workers).forEach(function (id) {
+							if (id != child.id) {
+								cluster.workers[id].send(msg);
+							}
+						});
 					}
-					else if (code) {
-						console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
-						if (debug)
-							cluster.settings.execArgv.push('--debug=' + (++portIndex));
-						subscribeChild(cluster.fork());
-						if (debug)
-							cluster.settings.execArgv.pop();
-					}
-
 				});
-			})
-			.catch(function(err){
-				console.log('Sequelize init failed: ' + err);
+			};
+
+			var debug = process.execArgv.indexOf('--debug') !== -1;
+			cluster.setupMaster({
+				execArgv: process.execArgv.filter(function (s) {
+					return s !== '--debug'
+				})
 			});
 
 
+			// Count the machine's CPUs
+			var cpuCount = require('os').cpus().length;
+
+			var config = require('./config/config');
+			if (cpuCount < config.minNodesCount)
+				cpuCount = config.minNodesCount;
+			if (config.maxNodesCount)
+				cpuCount = config.maxNodesCount;
+
+					console.log('-- CPU count: ' + cpuCount);
+			console.log('-- Master started: ' + process.pid);
+
+			// Create a worker for each CPU
+			var debugPort = 5859;
+			var portIndex = debugPort;
+			for (var i = 0; i < cpuCount; i += 1) {
+				setTimeout(function () {
+					if (debug)
+						cluster.settings.execArgv.push('--debug=' + (++portIndex));
+					subscribeChild(cluster.fork());
+					if (debug)
+						cluster.settings.execArgv.pop();
+				}, i * 5000)
+			}
+
+
+			cluster.on('online', function (worker) {
+				console.log('--worker %s online', worker.id);
+			});
+			cluster.on('listening', function (worker, addr) {
+				console.log('--worker %s listening on %s:%d', worker.id, addr.address, addr.port);
+			});
+
+
+			var recoverNode = function(){
+				if (portIndex > (debugPort + (10 * cpuCount)))
+					portIndex = debugPort;
+
+				if (debug)
+					cluster.settings.execArgv.push('--debug=' + (++portIndex));
+				subscribeChild(cluster.fork());
+				if (debug)
+					cluster.settings.execArgv.pop();
+
+			}
+
+			cluster.on('disconnect', function (worker) {
+				console.log('--worker %s disconnected', worker.id);
+				recoverNode();
+			});
+
+
+			/**/
+			cluster.on('exit', function (worker, code, signal) {
+				if (signal) {
+					console.log('Worker died with signal (ID: %d, PID: %d)', worker.id, worker.process.pid);
+				}
+				else if (code) {
+					console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
+					recoverNode();
+				}
+
+			});
+		})
+		.catch(function(err){
+			console.log('Sequelize init failed: ' + err);
+		});
+
+
 // Code to run if we're in a worker process
-	} else {
+} else {
 
-		db.init(config.db);
+	db.init(config.db);
 
-		// Init the express application
-		var app = require('./config/express')();
+	// Init the express application
+	var app = require('./config/express')();
 
-		// Bootstrap passport config
-		require('./config/passport')();
+	// Bootstrap passport config
+	require('./config/passport')();
 
-		// Start the app by listening on <port>
-		app.listen(config.port);
+	// Start the app by listening on <port>
+	app.listen(config.port);
 
-		setInterval(function(){
-			process.exit(1);
-		}, 60 * 60 * 1000);
+	var stateTracker =
+		new stateTracker(
+			config.workerStatePeriod,
+			config.workerStateOverheadRatio,
+			function(theValue){
+		process.disconnect();
+	});
+	stateTracker.addValue(process.memoryUsage().rss);
 
-		// Logging initialization
-		console.log('-- node (' + process.pid + ') started on port ' + config.port);
+	// Start the app by listening on <port>
+	app.listen(config.port);
+
+	setInterval(function(){
+		stateTracker.addValue(process.memoryUsage().rss);
+	}, config.workerStateCheckTimeout);
+
+	// Logging initialization
+	console.log('-- node (' + process.pid + ') started on port ' + config.port);
 
 }
 

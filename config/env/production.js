@@ -3,6 +3,9 @@
 module.exports = {
 	db: process.env.POSTGRES_URI || 'postgres://postgres:password@localhost:5432/site',
 	minNodesCount: 8,
+	workerStatePeriod: 1000 * 60 * 60, // 1 hr
+	workerStateCheckTimeout: 1000 * 10, // 10 sec
+	workerStateOverheadRatio: 1.5,
 	sessionExpirationTime: 1000 * 60 * 60, // 1h
 	sessionUpdateTimeout: 1000 * 60,
 	assets: {

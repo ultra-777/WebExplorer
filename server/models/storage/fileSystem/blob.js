@@ -72,7 +72,7 @@ function model(sequelize, DataTypes) {
                         }
 
                         if (!this.fileStream){
-                            this.fileStream = fs.openSync(this.getFilePath(), 'w');
+                            this.fileStream = fs.openSync(this.getFilePath(), 'a');
                         }
 
                         fs.writeSync(this.fileStream, binaryData, 0, size, startPosition);
@@ -90,7 +90,7 @@ function model(sequelize, DataTypes) {
                     flush: function(){
                         if (this.fileStream != null) {
                             fs.fsyncSync(this.fileStream);
-                            fs.close(this.fileStream);
+                            fs.closeSync(this.fileStream);
                             this.fileStream = null;
                         }
                     },

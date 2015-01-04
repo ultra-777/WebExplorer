@@ -57,7 +57,8 @@ var _blobInstances = new Object();
 process.on('message', function(msg){
     if (msg.cmd && msg.cmd == config.messageUpdateBlob){
         console.log('--node: %d. drop blob: %s', process.pid, msg.id);
-        delete _blobInstances[msg.id];
+        if (msg.id)
+            delete _blobInstances[msg.id];
     }
 });
 
@@ -82,7 +83,7 @@ exports.addBlobChunk = function(req, res, next){
 
     var cachedBlobInstance = _blobInstances[req.body.blobId];
     if (cachedBlobInstance){
-        console.log('--blob instance found: %s process: %d', req.body.blobId, process.pid);
+        //console.log('--blob instance found: %s process: %d', req.body.blobId, process.pid);
 
         addChunk2Instance(
             cachedBlobInstance,
@@ -93,7 +94,7 @@ exports.addBlobChunk = function(req, res, next){
             });
     }
     else {
-        console.log('--blob instance not found: %s process: %d', req.body.blobId, process.pid);
+        //console.log('--blob instance not found: %s process: %d', req.body.blobId, process.pid);
 
         _blobSchema.find(req.body.blobId)
             .then(function (blobInstance) {
@@ -120,6 +121,7 @@ exports.addBlobChunk = function(req, res, next){
 }
 
 function addChunk2Instance(blobInstance, chunkIndex, data, callback){
+
     if (blobInstance) {
         blobInstance.addChunk(
             chunkIndex,
@@ -223,7 +225,6 @@ exports.uploadFile = function(req, res, next){
         }
     });
 
-// Close emitted after form parsed
     form.on('close', function() {
         console.log('Upload completed!');
 
@@ -232,102 +233,5 @@ exports.uploadFile = function(req, res, next){
         res.jsonp(result);
 
     });
-
-
     form.parse(req);
-
-
-
-    /*
-    form.parse(req, function(err, fields, files) {
-        res.writeHead(200, {'content-type': 'text/plain'});
-        res.write('received upload:\n\n');
-        res.end(util.inspect({fields: fields, files: files}));
-    });
-    */
-
-/*
-
-    // parsing
-    var parser = multipart.parser();
-
-// in all event handlers, "this" is the parser, and "this.part" is the
-// part that's currently being dealt with.
-    parser.onpartbegin = function (part) {
-        var q = 0;
-    };
-    parser.ondata = function (chunk) {
-        var q = 0;
-    };
-    parser.onend = function () {
-        var q = 0;
-    };
-
-// now start feeding the message through it.
-// you can do this all in one go, if you like, or one byte at a time,
-// or anything in between.
-    parser.boundary = "xxxxxxxxx";
-    var chunk;
-    while ( chunk = upstreamThing.getNextChunk() ) {
-        parser.write(chunk);
-    }
-    parser.close();
-
-
-
-
-
-
-    // Handle request as multipart
-    var stream = new multipart.Stream(req);
-
-    // Create promise that will be used to emit event on file close
-    var closePromise = new events.Promise();
-
-    // Add handler for a request part received
-    stream.addListener("part", function(part) {
-        sys.debug("Received part, name = " + part.name + ", filename = " + part.filename);
-
-        var openPromise = null;
-
-        // Add handler for a request part body chunk received
-        part.addListener("body", function(chunk) {
-            // Calculate upload progress
-            var progress = (stream.bytesReceived / stream.bytesTotal * 100).toFixed(2);
-            var mb = (stream.bytesTotal / 1024 / 1024).toFixed(1);
-
-            sys.debug("Uploading " + mb + "mb (" + progress + "%)");
-
-            // Ask to open/create file (if not asked before)
-            if (openPromise == null) {
-                sys.debug("Opening file");
-                openPromise = posix.open("./uploads/" + part.filename, process.O_CREAT | process.O_WRONLY, '0600');
-            }
-
-            // Add callback to execute after file is opened
-            // If file is already open it is executed immediately
-            openPromise.addCallback(function(fileDescriptor) {
-                // Write chunk to file
-                write_chunk(req, fileDescriptor, chunk,
-                    (stream.bytesReceived == stream.bytesTotal), closePromise);
-            });
-
-        });
-    });
-
-    // Add handler for the request being completed
-    stream.addListener("complete", function() {
-        sys.debug("Request complete");
-
-        // Wait until file is closed
-        closePromise.addCallback(function() {
-            // Render response
-            res.sendHeader(200, {"Content-Type": "text/plain"});
-            res.sendBody("Thanks for playing!");
-            res.finish();
-
-            sys.puts("\n=> Done");
-        });
-    });
-*/
 }

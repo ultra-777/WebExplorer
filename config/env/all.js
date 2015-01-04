@@ -8,6 +8,9 @@ module.exports = {
 	},
 	port: process.env.PORT || 80,
 	minNodesCount: 1,
+	workerStatePeriod: 1000 * 60 * 60, // 1 hr
+	workerStateCheckTimeout: 1000 * 5, // 5 sec
+	workerStateOverheadRatio: 1.5,
     storage: process.env.STORAGE_PATH || 'data',
     rootAlias: process.env.ROOT_ALIAS || '$',
 	templateEngine: 'swig',
