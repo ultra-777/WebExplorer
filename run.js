@@ -135,7 +135,6 @@ if (cluster.isMaster) {
 
 			cluster.on('disconnect', function (worker) {
 				console.log('--worker %s disconnected', worker.id);
-				recoverNode();
 			});
 
 
