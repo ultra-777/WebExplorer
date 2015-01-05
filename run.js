@@ -96,20 +96,19 @@ if (cluster.isMaster) {
 			if (config.maxNodesCount)
 				cpuCount = config.maxNodesCount;
 
-					console.log('-- CPU count: ' + cpuCount);
+			console.log('-- CPU count: ' + cpuCount);
 			console.log('-- Master started: ' + process.pid);
 
 			// Create a worker for each CPU
 			var debugPort = 5859;
 			var portIndex = debugPort;
-
-			cluster.on('online', function (worker) {
-				console.log('--worker %s online', worker.id);
-			});
-			cluster.on('listening', function (worker, addr) {
-				console.log('--worker %s listening on %s:%d', worker.id, addr.address, addr.port);
-			});
-
+			var workerDownHistory  = new Object();
+			var checkIfRecoverRequired = function(id){
+				if (workerDownHistory[id])
+					return false;
+				workerDownHistory[id] = true;
+				return true;
+			}
 
 			var recoverNodes = function(urgent){
 				var currentNodesCount =
@@ -132,23 +131,30 @@ if (cluster.isMaster) {
 				}
 			}
 
-			recoverNodes(false);
 
+			cluster.on('online', function (worker) {
+				console.log('--worker %s online', worker.id);
+			});
+			cluster.on('listening', function (worker, addr) {
+				console.log('--worker %s listening on %s:%d', worker.id, addr.address, addr.port);
+			});
 			cluster.on('disconnect', function (worker) {
-				console.log('--worker %s disconnected', worker.id);
+				if (checkIfRecoverRequired(worker.id))
+					recoverNodes(true);
+				console.log('--worker %s disconnected on %s:%d', worker.id);
 			});
 
+			recoverNodes(false);
 
-			/**/
 			cluster.on('exit', function (worker, code, signal) {
 				if (signal) {
 					console.log('Worker died with signal (ID: %d, PID: %d)', worker.id, worker.process.pid);
 				}
 				else if (code) {
 					console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
-					recoverNodes(true);
+					if (checkIfRecoverRequired(worker.id))
+						recoverNodes(true);
 				}
-
 			});
 		})
 		.catch(function(err){
@@ -175,7 +181,8 @@ if (cluster.isMaster) {
 			config.workerStatePeriod,
 			config.workerStateOverheadRatio,
 			function(theValue){
-		process.disconnect();
+		//process.disconnect();
+				process.exit(0);
 	});
 	stateTracker.addValue(process.memoryUsage().rss);
 
