@@ -102,16 +102,6 @@ if (cluster.isMaster) {
 			// Create a worker for each CPU
 			var debugPort = 5859;
 			var portIndex = debugPort;
-			for (var i = 0; i < cpuCount; i += 1) {
-				setTimeout(function () {
-					if (debug)
-						cluster.settings.execArgv.push('--debug=' + (++portIndex));
-					subscribeChild(cluster.fork());
-					if (debug)
-						cluster.settings.execArgv.pop();
-				}, i * 5000)
-			}
-
 
 			cluster.on('online', function (worker) {
 				console.log('--worker %s online', worker.id);
@@ -121,17 +111,28 @@ if (cluster.isMaster) {
 			});
 
 
-			var recoverNode = function(){
-				if (portIndex > (debugPort + (10 * cpuCount)))
-					portIndex = debugPort;
-
-				if (debug)
-					cluster.settings.execArgv.push('--debug=' + (++portIndex));
-				subscribeChild(cluster.fork());
-				if (debug)
-					cluster.settings.execArgv.pop();
-
+			var recoverNodes = function(urgent){
+				var currentNodesCount =
+					Object.keys(cluster.workers).length ?
+						Object.keys(cluster.workers).length
+						: 0;
+				var requiredAmount = cpuCount - currentNodesCount;
+				var launchTimeout = urgent ? 0 : config.workerLaunchSpread;
+				for (var i = 0; i < requiredAmount; i += 1) {
+					setTimeout(function () {
+						if (debug) {
+							if (portIndex > (debugPort + (10 * cpuCount)))
+								portIndex = debugPort;
+							cluster.settings.execArgv.push('--debug=' + (++portIndex));
+						}
+						subscribeChild(cluster.fork());
+						if (debug)
+							cluster.settings.execArgv.pop();
+					}, i * launchTimeout)
+				}
 			}
+
+			recoverNodes(false);
 
 			cluster.on('disconnect', function (worker) {
 				console.log('--worker %s disconnected', worker.id);
@@ -145,7 +146,7 @@ if (cluster.isMaster) {
 				}
 				else if (code) {
 					console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
-					recoverNode();
+					recoverNodes(true);
 				}
 
 			});

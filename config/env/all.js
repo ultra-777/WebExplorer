@@ -8,6 +8,7 @@ module.exports = {
 	},
 	port: process.env.PORT || 80,
 	minNodesCount: 1,
+	workerLaunchSpread: 5000, // 5 sec
 	workerStatePeriod: 1000 * 60 * 60, // 1 hr
 	workerStateCheckTimeout: 1000 * 5, // 5 sec
 	workerStateOverheadRatio: 1.5,
