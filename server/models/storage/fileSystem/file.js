@@ -34,7 +34,7 @@ function model(sequelize, DataTypes) {
                         try {
                             var fileLocation = file.getLocation();
                             if (fileLocation)
-                                fs.fs.unlinkSync(fileLocation);
+                                fs.unlinkSync(fileLocation);
                         }
                         catch (err){
                             console.error('file.afterDestroy: ' + err);
