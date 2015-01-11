@@ -34,7 +34,7 @@ function model(sequelize, DataTypes) {
                         try {
                             var fileLocation = file.getLocation();
                             if (fileLocation)
-                                fs.unlink(fileLocation);
+                                fs.fs.unlinkSync(fileLocation);
                         }
                         catch (err){
                             console.error('file.afterDestroy: ' + err);
@@ -69,9 +69,8 @@ function model(sequelize, DataTypes) {
                             .query(query, callee, {transaction: theTransaction, plain: true}, [])
                             .then(function (newFile) {
                                 if (newFile){
-                                    var isNewFolder = newFile.isNewFolder;
-                                    if (isNewFolder){
-                                        var folderLocation = db.buildPath(null, newFile.folderPath, newFile.repositoryLocation, true);
+                                    var folderLocation = db.buildPath(null, newFile.folderPath, newFile.repositoryLocation, true);
+                                    if (fs.existsSync(folderLocation)) {
                                         fs.mkdirSync(folderLocation, '0600');
                                     }
 
