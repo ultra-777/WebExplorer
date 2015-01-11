@@ -10,6 +10,7 @@ var exp = require('./explorer.js');
 var map = require('./map.js');
 var pth = require('path');
 
+
 var rootPath = map.pathToLocal('');
 if (!fs.existsSync(rootPath))
     fs.mkdirSync(rootPath, '0600');
@@ -144,6 +145,12 @@ module.exports.NewFolder = newFolder;
 module.exports.Delete = deleteItem;
 
 module.exports.Download = downloadFile;
+
+
+
+
+
+
 
 
 

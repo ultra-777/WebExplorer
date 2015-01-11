@@ -4,53 +4,11 @@
  * Module dependencies.
  */
 
-var fs = require('../models/fs.js');
 var multiparty = require("multiparty");
-var fss = require('fs');
-var util = require('util');
-var ms = require('memorystream');
-var map = require('../models/map.js');
+var fs = require('fs');
 var db = require('../models/storage/db');
 var config = require('../../config/config');
-
-
-
-exports.index = function(req, res, next) {
-    var result = {
-      q: 25
-    };
-    res.jsonp(result);
-};
-
-exports.folder = function(req, res, next) {
-    if (req.user) {
-        var result = fs.GetItem(req.body.id);
-        res.send(result.toJson());
-    }
-    else
-        res.send(401, {
-            message: 'User is not signed in'
-        });
-};
-
-exports.root = function(req, res, next) {
-    var result = fs.GetItem('.');
-    res.send(result.toJson());
-};
-
-exports.newFolder = function(req, res, next) {
-    var result = fs.NewFolder(req.body.id, req.body.name);
-    res.send(result.toJson());
-};
-
-exports.delete = function(req, res, next) {
-    var result = fs.Delete(req.body.id);
-    res.jsonp(result);
-};
-
-exports.download = function(req, res, next) {
-    fs.Download(req.query.id, res);
-};
+var treeImpl = require('../models/tree');
 
 var _blobSchema = db.getObject('blob', 'fileSystem');
 var _blobInstances = new Object();
@@ -62,62 +20,163 @@ process.on('message', function(msg){
     }
 });
 
-exports.initBlob = function(req, res, next){
 
-    var blobInstance = _blobSchema.build();
-    blobInstance.file = req.body.fileName;
-    blobInstance.folder = req.body.folderId;
-    blobInstance.totalSize = req.body.totalSize;
-    blobInstance.chunkSize = req.body.chunkSize;
-    blobInstance.save()
-        .then(function () {
-            res.jsonp({ id: blobInstance.id });
+
+
+exports.folder = function(req, res, next) {
+
+    checkAuthorization(req, res, function(){
+        treeImpl.getInstance(null, req.user, function(instance, error){
+            if (error)
+                res.send(500, error);
+            else{
+                instance.getFolder(req.body.id, function(folder, error){
+                    if (error)
+                        res.send(500, error);
+                    else
+                        res.send(folder.toJson());
+                });
+            }
         })
-        .catch(function(err){
-            res.send(500, err);
-        });
+    });
+};
 
+exports.root = function(req, res, next) {
+    checkAuthorization(req, res, function(){
+        treeImpl.getInstance(null, req.user, function(instance, error){
+            if (error)
+                res.send(500, error);
+            else{
+                instance.getRoot(function(folder, error){
+                    if (error)
+                        res.send(500, error);
+                    else
+                        res.send(folder.toJson());
+                });
+            }
+        })
+    });
+};
+
+exports.newFolder = function(req, res, next) {
+    checkAuthorization(req, res, function(){
+        treeImpl.getInstance(null, req.user, function(instance, error){
+            if (error)
+                res.send(500, error);
+            else{
+                instance.newFolder(req.body.id, req.body.name, function(folder, error){
+                    if (error)
+                        res.send(500, error);
+                    else
+                        res.send(folder.toJson());
+                });
+            }
+        })
+    });
+};
+
+exports.delete = function(req, res, next) {
+    checkAuthorization(req, res, function(){
+        treeImpl.getInstance(null, req.user, function(instance, error){
+            if (error)
+                res.send(500, error);
+            else{
+                instance.dropNode(req.body.id, function(result, error){
+                    if (error)
+                        res.send(500, error);
+                    else{
+                        res.jsonp(result);
+                    }
+                });
+            }
+        })
+    });
+};
+
+exports.download = function(req, res, next) {
+    checkAuthorization(req, res, function(){
+        treeImpl.getInstance(null, req.user, function(instance, error){
+            if (error)
+                res.send(500, error);
+            else{
+                instance.downloadFile(req.query.id, function(fileName, stream, error){
+                    if (error)
+                        res.send(500, error);
+                    else{
+                        res.setHeader('Content-disposition', 'attachment; filename=' + fileName);
+                        res.setHeader('Content-type', 'application/octet-stream');
+                        stream.pipe(res);
+                    }
+                });
+            }
+        })
+    });
+};
+
+exports.initBlob = function(req, res, next){
+    checkAuthorization(req, res, function(){
+        _blobSchema
+            .create(
+                req.body.fileName,
+                req.body.folderId,
+                req.body.totalSize,
+                req.body.chunkSize,
+                req.user,
+                function(blob, err){
+                    if (err)
+                        res.send(500, err);
+                    else{
+                        if (blob)
+                            res.jsonp({ id: blob.id });
+                        else
+                            res.jsonp({ id: null });
+                    }
+                });
+    });
 };
 
 exports.addBlobChunk = function(req, res, next){
+    checkAuthorization(req, res, function(){
+        var cachedBlobInstance = _blobInstances[req.body.blobId];
+        if (cachedBlobInstance){
+            //console.log('--blob instance found: %s process: %d', req.body.blobId, process.pid);
 
-    var cachedBlobInstance = _blobInstances[req.body.blobId];
-    if (cachedBlobInstance){
-        //console.log('--blob instance found: %s process: %d', req.body.blobId, process.pid);
+            addChunk2Instance(
+                cachedBlobInstance,
+                req.body.chunkIndex,
+                req.body.data,
+                function(result){
+                    res.jsonp(result);
+                });
+        }
+        else {
+            //console.log('--blob instance not found: %s process: %d', req.body.blobId, process.pid);
 
-        addChunk2Instance(
-            cachedBlobInstance,
-            req.body.chunkIndex,
-            req.body.data,
-            function(result){
-                res.jsonp(result);
-            });
-    }
-    else {
-        //console.log('--blob instance not found: %s process: %d', req.body.blobId, process.pid);
+            _blobSchema
+                .get(
+                    req.body.blobId,
+                    null,
+                    function(blobInstance, err) {
+                        if (err)
+                            res.send(500, err);
+                        else {
+                            if (blobInstance) {
+                                _blobInstances[req.body.blobId] = blobInstance;
 
-        _blobSchema.find(req.body.blobId)
-            .then(function (blobInstance) {
-
-                if (blobInstance) {
-                    _blobInstances[req.body.blobId] = blobInstance;
-
-                    addChunk2Instance(
-                        blobInstance,
-                        req.body.chunkIndex,
-                        req.body.data,
-                        function(result){
-                            res.jsonp(result);
-                        });
-                }
-                else
-                    res.jsonp({error: 'instance is absent'});
-
-            })
-            .catch(function (err) {
-                res.send(500, err);
-            });
-    }
+                                addChunk2Instance(
+                                    blobInstance,
+                                    req.body.chunkIndex,
+                                    req.body.data,
+                                    function (result) {
+                                        res.jsonp(result);
+                                    });
+                            }
+                            else
+                                res.jsonp({error: 'instance is absent'});
+                    }
+                });
+        }
+    });
 }
 
 function addChunk2Instance(blobInstance, chunkIndex, data, callback){
@@ -127,20 +186,20 @@ function addChunk2Instance(blobInstance, chunkIndex, data, callback){
             chunkIndex,
             data);
 
-        var file =
-            fs.GetItem(
-                blobInstance.getRelativePath());
-
         var result =
         {
             id: blobInstance.id,
             percent: blobInstance.percent,
-            isComplete: blobInstance.isOk,
-            file: file
+            isComplete: blobInstance.isOk
         };
 
         if (blobInstance.isOk) {
-            dropBlob(blobInstance.id, function (state, error) {
+
+            dropBlob(blobInstance.id, function (newNode, error) {
+
+                if (newNode)
+                    result.file = treeImpl.getFileInfo(newNode);
+
                 callback(result);
             });
             return;
@@ -153,39 +212,37 @@ function addChunk2Instance(blobInstance, chunkIndex, data, callback){
 
 function dropBlob(id, callback){
 
-    _blobSchema.find(id)
-        .then(function (blobInstance) {
-            if (blobInstance) {
-                blobInstance.destroy()
-                    .then(function (affectedRows) {
-                        var existingInstance = _blobInstances[id];
-                        if (existingInstance) {
-                            existingInstance.release();
-                            delete _blobInstances[id];
-                            existingInstance = null;
-                            callback && callback(true, null);
-                            process.send && process.send({broadcast: true, cmd: config.messageUpdateBlob, id: id});
-                        }
-                        else
-                            callback && callback(false, null);
-                    })
-                    .catch(function (err) {
-                        callback && callback(false, err);
-                    });
-            }
-            else
-                callback && callback(false, null);
-        })
-        .catch(function (err) {
-            callback && callback(false, err);
-        });
+    var existingInstance = _blobInstances[id];
+    if (existingInstance) {
+        delete _blobInstances[id];
+    }
 
+    var handler = function(newNode, err) {
+        if (err)
+            callback && callback(null, err);
+        else {
+            callback && callback(newNode, null);
+            process.send && process.send({
+                broadcast: true,
+                cmd: config.messageUpdateBlob,
+                id: id
+            });
+        }
+    };
+
+    if (existingInstance)
+        _blobSchema.dropInstance(existingInstance, handler);
+    else
+        _blobSchema.dropById(id, handler);
+
+    existingInstance = null;
 }
 
 exports.releaseBlob = function(req, res, next){
-
-    dropBlob(req.body.blobId, function(result, error){
-        res.jsonp(result);
+    checkAuthorization(req, res, function(){
+        dropBlob(req.body.blobId, function(result, error){
+            res.jsonp(result);
+        });
     });
 }
 
@@ -193,45 +250,102 @@ exports.uploadFile = function(req, res, next){
 
     var form = new multiparty.Form();
 
-    // Errors may be emitted
-    form.on('error', function(err) {
-        console.log('Error parsing form: ' + err.stack);
-    });
-
-    var folderPath = null;
-    var resultPath = null;
+    var dataLength = null;
+    var parentNodeId = null;
+    var repositoryBlob = null;
 
 // Parts are emitted when parsing the form
     form.on('part', function(part) {
         if ((part.filename === undefined) || (part.filename === null)) {
 
-            folderPath = map.pathToLocal(part.name);
-            // filename is "null" when this is a field and not a file
-            console.log('got field named ' + part.name);
-            // ignore field's content
+            parentNodeId = Number(part.name);
             part.resume();
-
         }
         else{
             console.log('got field named ' + part.name);
             // ignore file's content here
 
-            if (folderPath !== null){
-                var resultPathLocal = map.joinPath(folderPath, part.filename);
-                resultPath = map.pathToRelative(resultPathLocal);
-                var out = fss.createWriteStream(resultPathLocal);
-                part.pipe(out);
+            var nodeSchema = db.getObject('node', 'fileSystem');
+            nodeSchema
+                .get(parentNodeId, null, function(parentNode, err){
+                    if (err)
+                        res.send(500, err);
+                    else{
+                        if (parentNode){
+                            dataLength = part.byteCount;
+                            _blobSchema
+                                .create(
+                                    part.filename,
+                                    parentNode.id,
+                                    part.byteCount,
+                                    part.byteCount,
+                                    req.user,
+                                    function(blob, err){
+                                        if (err)
+                                            res.send(500, err);
+                                        else{
+                                            repositoryBlob = blob;
+                                            repositoryBlob.containerNode = parentNode;
+                                            var location = blob.file.getLocation();
+                                            var out = fs.createWriteStream(location);
+                                            part.pipe(out);
+                                        }
+                                    });
+                        }
+                    }
+                });
             }
-        }
+    });
+
+    form.on('error', function(err) {
+        console.log('Upload error!' + err);
+
+        release();
+
+        res.send(200)
+
+    });
+
+    form.on('aborted', function() {
+        console.log('Upload aborted!');
+
+        release();
+
+        res.send(200);
+
     });
 
     form.on('close', function() {
         console.log('Upload completed!');
-
-        var result = fs.GetItem(resultPath);
-
-        res.jsonp(result);
-
+        repositoryBlob.isOk = true;
+        release(res);
     });
+
+    function release(res){
+        if (repositoryBlob) {
+            _blobSchema
+                .dropInstance(repositoryBlob, function (newNode, err) {
+                    if (res) {
+                        if (err)
+                            res.send(500, err);
+                        else
+                            res.jsonp(treeImpl.getFileInfo(newNode));
+                    }
+                    repositoryBlob = null;
+                });
+        }
+    }
+
     form.parse(req);
+}
+
+function checkAuthorization(req, res, callback/*function()*/){
+    if (req.user) {
+        callback && callback();
+    }
+    else {
+        res.send(401, {
+            message: 'User is not signed in'
+        });
+    }
 }

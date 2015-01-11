@@ -1,8 +1,7 @@
 "use strict";
 
 var fs = require('fs');
-var uuid = require('node-uuid');
-var map = require('../../map');
+
 
 function model(sequelize, DataTypes) {
 
@@ -11,8 +10,8 @@ function model(sequelize, DataTypes) {
             "blob",
             {
                 id: { type: DataTypes.BIGINT, autoIncrement: true, primaryKey: true, allowNull: false },
-                folder: { type: DataTypes.STRING(2048) },
-                file: { type: DataTypes.STRING(256) },
+                containerNodeId: { type: DataTypes.BIGINT, allowNull: false, validate: { isNumeric: true } },
+                fileId: { type: DataTypes.BIGINT, allowNull: false, validate: { isNumeric: true } },
                 totalSize: { type: DataTypes.BIGINT },
                 chunkSize: { type: DataTypes.BIGINT },
                 created: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
@@ -24,7 +23,7 @@ function model(sequelize, DataTypes) {
                 schema: "fileSystem",
 
                 // define the table's name
-                tableName: 'Blob',
+                tableName: 'Blobs',
 
                 hooks: {
                     beforeUpdate: function (blob, fn){
@@ -35,6 +34,301 @@ function model(sequelize, DataTypes) {
                     },
                     beforeSave: function (blob, fn){
                         blob.onBeforeSave(blob, fn);
+                    }
+                },
+
+                classMethods: {
+                    get: function(
+                        blobId,
+                        theTransaction,
+                        callback/*function(blob, error)*/
+                    ){
+                        var blobSchema = sequelize.model('fileSystem.blob');
+                        var fileSchema = sequelize.model('fileSystem.file');
+                        var folderSchema = sequelize.model('fileSystem.folder');
+                        var repositorySchema = sequelize.model('fileSystem.repository');
+                        var nodeSchema = sequelize.model('fileSystem.node');
+
+                        blobSchema
+                            .find({
+                                where: { id: Number(blobId) },
+                                include: [
+                                    {
+                                        model: fileSchema,
+                                        as: 'file',
+                                        include: [{
+                                            model: folderSchema,
+                                            as: 'folder',
+                                            include: [{
+                                                model: repositorySchema,
+                                                as: 'repository'
+                                            }]},
+                                            {
+                                                model: repositorySchema,
+                                                as: 'repository'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        model: nodeSchema,
+                                        as: 'containerNode',
+                                        include: [{
+                                            model: fileSchema,
+                                            as: 'file'
+                                        }]
+                                    }
+                                ],
+                                transaction: theTransaction
+                            })
+                            .then(function(blob){
+                                callback && callback(blob, null);
+                            })
+                            .catch(function(err){
+                                callback && callback(null, err);
+                            });
+                    },
+
+                    create: function(
+                        fileName,
+                        parentNodeId,
+                        totalSize,
+                        chunkSize,
+                        userId,
+                        callback/*function(blob, error)*/){
+
+                        var fileSchema = sequelize.model('fileSystem.file');
+                        var blobSchema = sequelize.model('fileSystem.blob');
+
+
+                        sequelize
+                            .transaction({
+                                autocommit: 'off',
+                                isolationLevel: 'REPEATABLE READ'})
+                            .then(function (t) {
+                                fileSchema
+                                    .create(
+                                        fileName,
+                                        totalSize,
+                                        t,
+                                        function(file, err){
+                                            if (err){
+                                                t.rollback();
+                                                callback && callback(null, err);
+                                            }
+                                            else {
+                                                if (file){
+                                                    var newBlob =
+                                                        blobSchema
+                                                            .build({
+                                                                fileId: file.id,
+                                                                containerNodeId: parentNodeId,
+                                                                totalSize: totalSize,
+                                                                chunkSize: chunkSize
+                                                            },
+                                                            {transaction: t});
+                                                    newBlob
+                                                        .save({transaction: t})
+                                                        .catch(function(err){
+                                                            t.rollback();
+                                                            callback && callback(null, err);
+                                                        })
+                                                        .then(function(newInstance){
+                                                            t
+                                                                .commit()
+                                                                .catch(function(err){
+                                                                    callback && callback(null, err);
+                                                                })
+                                                                .then(function() {
+                                                                    if (newInstance)
+                                                                        newInstance.file = file;
+                                                                    callback && callback(newInstance, null);
+                                                                });
+                                                        })
+                                                }
+                                                else{
+                                                    t.rollback();
+                                                    callback && callback(null, null);
+                                                }
+                                            }
+                                    });
+                            })
+                            .catch(function(err){
+                                t.rollback();
+                                callback && callback(null, err);
+                            })
+                    },
+
+                    dropById: function(
+                        blobId,
+                        callback/*function(newNode, error)*/
+                    ){
+                        var blobSchema = sequelize.model('fileSystem.blob');
+                        var nodeSchema = sequelize.model('fileSystem.node');
+
+                        sequelize
+                            .transaction({
+                                autocommit: 'off',
+                                isolationLevel: 'REPEATABLE READ'})
+                            .then(function (t) {
+                                    blobSchema.get(
+                                        Number(blobId),
+                                        t,
+                                        function(blobInstance, err){
+                                            if (err){
+                                                if (t)
+                                                    t.rollback();
+                                                callback && callback(null, err);
+                                            }
+                                            else{
+                                                if (blobInstance) {
+                                                    blobInstance.flush();
+                                                    var isOk = blobInstance.isOk;
+                                                    var file = blobInstance.file;
+                                                    var containerNode = blobInstance.containerNode;
+                                                    blobInstance.destroy({transaction: t})
+                                                        .then(function (affectedRows) {
+                                                            if (isOk){
+                                                                var newNode =
+                                                                    nodeSchema
+                                                                        .build({
+                                                                            treeId: containerNode.treeId,
+                                                                            isContainer: false,
+                                                                            name: file.name,
+                                                                            parentId: containerNode.id,
+                                                                            fileId: file.id
+                                                                        },
+                                                                        {transaction: t});
+                                                                newNode.file = file;
+                                                                newNode
+                                                                    .save({transaction: t})
+                                                                    .then(function (affectedRows) {
+                                                                        t
+                                                                            .commit()
+                                                                            .then(function(){
+                                                                                callback && callback(newNode, null);
+                                                                            })
+                                                                            .catch(function (err) {
+                                                                                callback && callback(null, err);
+                                                                            });
+
+                                                                    })
+                                                                    .catch(function (err) {
+                                                                        t.rollback();
+                                                                        callback && callback(null, err);
+                                                                    });
+                                                            }
+                                                            else{
+                                                                file
+                                                                    .destroy({transaction: t})
+                                                                    .then(function (affectedRows) {
+                                                                        t
+                                                                            .commit()
+                                                                            .then(function(){
+                                                                                callback && callback(null, null);
+                                                                            })
+                                                                            .catch(function (err) {
+                                                                                callback && callback(null, err);
+                                                                            });
+
+                                                                    })
+                                                                    .catch(function (err) {
+                                                                        t.rollback();
+                                                                        callback && callback(null, err);
+                                                                    });
+                                                            }
+                                                        })
+                                                        .catch(function (err) {
+                                                            t.rollback();
+                                                            callback && callback(null, err);
+                                                        });
+                                                }
+                                                else
+                                                    callback && callback(null, null);
+                                            }
+                                        }
+                                    )
+                            })
+                            .catch(function (err) {
+                                callback && callback(null, err);
+                            });
+                    },
+
+                    dropInstance: function(
+                        blobInstance,
+                        callback/*function(newNode, error)*/
+                    ){
+                        var blobSchema = sequelize.model('fileSystem.blob');
+                        var nodeSchema = sequelize.model('fileSystem.node');
+
+                        sequelize
+                            .transaction({
+                                autocommit: 'off',
+                                isolationLevel: 'REPEATABLE READ'})
+                            .then(function (t) {
+                                blobInstance.flush();
+                                var isOk = blobInstance.isOk;
+                                var file = blobInstance.file;
+                                var containerNode = blobInstance.containerNode;
+                                blobInstance.destroy({transaction: t})
+                                    .then(function (affectedRows) {
+                                        if (isOk){
+                                            var newNode =
+                                                nodeSchema
+                                                    .build({
+                                                        treeId: containerNode.treeId,
+                                                        isContainer: false,
+                                                        name: file.name,
+                                                        parentId: containerNode.id,
+                                                        fileId: file.id
+                                                    },
+                                                    {transaction: t});
+                                            newNode.file = file;
+                                            newNode
+                                                .save({transaction: t})
+                                                .then(function (affectedRows) {
+                                                    t
+                                                        .commit()
+                                                        .then(function(){
+                                                            callback && callback(newNode, null);
+                                                        })
+                                                        .catch(function (err) {
+                                                            callback && callback(null, err);
+                                                        });
+
+                                                })
+                                                .catch(function (err) {
+                                                    t.rollback();
+                                                    callback && callback(null, err);
+                                                });
+                                        }
+                                        else{
+                                            file
+                                                .destroy({transaction: t})
+                                                .then(function (affectedRows) {
+                                                    t
+                                                        .commit()
+                                                        .then(function(){
+                                                            callback && callback(null, null);
+                                                        })
+                                                        .catch(function (err) {
+                                                            callback && callback(null, err);
+                                                        });
+
+                                                })
+                                                .catch(function (err) {
+                                                    t.rollback();
+                                                    callback && callback(null, err);
+                                                });
+                                        }
+                                    })
+                                    .catch(function (err) {
+                                        t.rollback();
+                                        callback && callback(null, err);
+                                    });
+                            })
+                            .catch(function (err) {
+                                callback && callback(null, err);
+                            });
                     }
                 },
 
@@ -50,13 +344,6 @@ function model(sequelize, DataTypes) {
 
                     onBeforeSave: function (blob, fn) {
                         return;
-                    },
-
-                    getRelativePath: function(){
-                        if (this.isOk){
-                            return map.pathToRelative(this.getFilePath());
-                        }
-                        return null;
                     },
 
                     addChunk: function(index, data){
@@ -76,7 +363,6 @@ function model(sequelize, DataTypes) {
                         }
 
                         fs.writeSync(this.fileStream, binaryData, 0, size, startPosition);
-                        //fs.fsyncSync(this.fileStream);
 
                         this.percent = expectedPosition / this.totalSize;
 
@@ -96,15 +382,9 @@ function model(sequelize, DataTypes) {
                     },
 
                     getFilePath: function(){
-                        var folderPath = map.pathToLocal(this.folder);
-                        var filePath = map.joinPath(folderPath, this.file);
-                        return filePath;
-                    },
-
-                    release: function(){
-                        this.flush();
-                        if (!this.isOk)
-                            fs.unlink(this.getFilePath());
+                        if (this.file)
+                            return this.file.getLocation();
+                        return null;
                     },
 
                     fileStream: null,
@@ -130,8 +410,19 @@ function model(sequelize, DataTypes) {
     return Blob;
 };
 
+function configure(getObjectHandler){
+    var file = getObjectHandler('file', 'fileSystem');
+    var node = getObjectHandler('node', 'fileSystem');
+    var blob = getObjectHandler('blob', 'fileSystem');
+
+    file.hasOne(blob, {as: 'file', foreignKey : 'fileId'});
+    node.hasOne(blob, {as: 'containerNode', foreignKey : 'containerNodeId'});
+    blob.belongsTo(file);
+    blob.belongsTo(node, {as: 'containerNode'});
+}
 
 module.exports = {
-    model: model
+    model: model,
+    config: configure
 };
 

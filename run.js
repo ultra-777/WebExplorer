@@ -3,7 +3,6 @@
  * Module dependencies.
  */
 
-
 var cluster = require('cluster');
 var init = require('./config/init')();
 var config = require('./config/config');
@@ -173,8 +172,7 @@ if (cluster.isMaster) {
 	// Bootstrap passport config
 	require('./config/passport')();
 
-	// Start the app by listening on <port>
-	app.listen(config.port);
+
 
 	var stateTracker =
 		new stateTracker(
@@ -185,9 +183,33 @@ if (cluster.isMaster) {
 				process.exit(0);
 	});
 	stateTracker.addValue(process.memoryUsage().rss);
-
+	/*
 	// Start the app by listening on <port>
 	app.listen(config.port);
+
+	 */
+
+	var http = require('http');
+	var server = http.createServer(app).listen(config.port, function(){
+		console.log("Express server listening on port " + config.port);
+	});
+
+	try {
+		var fs = require('fs');
+		var https = require('https');
+		var options = {
+			key: fs.readFileSync(config.sslKeyFilePath),
+			cert: fs.readFileSync(config.sslCertificateFilePath)
+		};
+		var serverSsl = https.createServer(options, app).listen(config.portSsl, function () {
+			console.log("Express server listening on port " + config.portSsl);
+		});
+		console.log("SSL is supported");
+	}
+	catch(err){
+		console.error("SSL is not supported: " + err);
+	}
+
 
 	setInterval(function(){
 		stateTracker.addValue(process.memoryUsage().rss);

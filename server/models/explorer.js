@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var util = require('./util.js');
+var util = require('./jsonImpl.js');
 
 var rootFolderAlias = '$';
 
