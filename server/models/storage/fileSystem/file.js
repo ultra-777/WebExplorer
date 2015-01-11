@@ -70,7 +70,7 @@ function model(sequelize, DataTypes) {
                             .then(function (newFile) {
                                 if (newFile){
                                     var folderLocation = db.buildPath(null, newFile.folderPath, newFile.repositoryLocation, true);
-                                    if (fs.existsSync(folderLocation)) {
+                                    if (!fs.existsSync(folderLocation)) {
                                         fs.mkdirSync(folderLocation, '0600');
                                     }
 
