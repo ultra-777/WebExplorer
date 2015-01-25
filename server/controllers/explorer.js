@@ -140,14 +140,17 @@ exports.addBlobChunk = function(req, res, next){
         var cachedBlobInstance = _blobInstances[req.body.blobId];
         if (cachedBlobInstance){
             //console.log('--blob instance found: %s process: %d', req.body.blobId, process.pid);
-
-            addChunk2Instance(
-                cachedBlobInstance,
-                req.body.chunkIndex,
-                req.body.data,
-                function(result){
-                    res.jsonp(result);
-                });
+            if (cachedBlobInstance.containerNode.tree.owner.id === req.user.id) {
+                addChunk2Instance(
+                    cachedBlobInstance,
+                    req.body.chunkIndex,
+                    req.body.data,
+                    function (result) {
+                        res.jsonp(result);
+                    });
+            }
+            else
+                res.send(404, 'instance is absent');
         }
         else {
             //console.log('--blob instance not found: %s process: %d', req.body.blobId, process.pid);
@@ -161,18 +164,24 @@ exports.addBlobChunk = function(req, res, next){
                             res.send(500, err);
                         else {
                             if (blobInstance) {
-                                _blobInstances[req.body.blobId] = blobInstance;
 
-                                addChunk2Instance(
-                                    blobInstance,
-                                    req.body.chunkIndex,
-                                    req.body.data,
-                                    function (result) {
-                                        res.jsonp(result);
-                                    });
+                                if (blobInstance.containerNode.tree.owner.id === req.user.id) {
+
+                                    _blobInstances[req.body.blobId] = blobInstance;
+
+                                    addChunk2Instance(
+                                        blobInstance,
+                                        req.body.chunkIndex,
+                                        req.body.data,
+                                        function (result) {
+                                            res.jsonp(result);
+                                        });
+                                }
+                                else
+                                    res.send(404, 'instance is absent');
                             }
                             else
-                                res.jsonp({error: 'instance is absent'});
+                                res.send(404, 'instance is absent');
                     }
                 });
         }
@@ -239,11 +248,29 @@ function dropBlob(id, callback){
 }
 
 exports.releaseBlob = function(req, res, next){
-    checkAuthorization(req, res, function(){
-        dropBlob(req.body.blobId, function(result, error){
-            res.jsonp(result);
-        });
-    });
+    checkAuthorization(req, res, function() {
+
+        _blobSchema
+            .get(
+            req.body.blobId,
+            null,
+            function (blobInstance, err) {
+                if (err)
+                    res.send(500, err);
+                else {
+                    if (blobInstance) {
+
+                        if (blobInstance.containerNode.tree.owner.id === req.user.id) {
+                            dropBlob(req.body.blobId, function (result, err) {
+                                res.jsonp(result);
+                            });
+                        }
+                        else
+                            res.send(404, 'instance is absent');
+                    }
+                }
+            });
+    })
 }
 
 exports.uploadFile = function(req, res, next){

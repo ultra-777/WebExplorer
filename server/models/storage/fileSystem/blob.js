@@ -48,6 +48,8 @@ function model(sequelize, DataTypes) {
                         var folderSchema = sequelize.model('fileSystem.folder');
                         var repositorySchema = sequelize.model('fileSystem.repository');
                         var nodeSchema = sequelize.model('fileSystem.node');
+                        var treeSchema = sequelize.model('fileSystem.tree');
+                        var userSchema = sequelize.model('security.user');
 
                         blobSchema
                             .find({
@@ -75,7 +77,16 @@ function model(sequelize, DataTypes) {
                                         include: [{
                                             model: fileSchema,
                                             as: 'file'
-                                        }]
+                                            },
+                                            {
+                                                model: treeSchema,
+                                                as: 'tree',
+                                                include: [{
+                                                    model: userSchema,
+                                                    as: 'owner'
+                                                }]
+                                            }
+                                        ]
                                     }
                                 ],
                                 transaction: theTransaction
