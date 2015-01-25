@@ -7,7 +7,7 @@ var db = require('../db');
 
 function model(sequelize, DataTypes) {
 
-    var File =
+    var definition =
         sequelize.define(
             "file",
             {
@@ -111,8 +111,7 @@ function model(sequelize, DataTypes) {
                 }
             }
         );
-
-    return File;
+    return definition;
 };
 
 function configure(getObjectHandler){

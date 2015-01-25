@@ -5,7 +5,7 @@ var db = require('../db');
 
 function model(sequelize, DataTypes) {
 
-    var Node =
+    var definition =
         sequelize.define(
             "node",
             {
@@ -35,7 +35,7 @@ function model(sequelize, DataTypes) {
                     ){
                         var nodeSchema = sequelize.model('fileSystem.node');
                         var treeSchema = sequelize.model('fileSystem.tree');
-                        var userSchema = sequelize.model('security.user');
+                        var userSchema = sequelize.model('security.account');
                         var fileSchema = sequelize.model('fileSystem.file');
                         var folderSchema = sequelize.model('fileSystem.folder');
                         var repositorySchema = sequelize.model('fileSystem.repository');
@@ -183,8 +183,7 @@ function model(sequelize, DataTypes) {
                 }
             }
         );
-
-    return Node;
+    return definition;
 };
 
 function configure(getObjectHandler){

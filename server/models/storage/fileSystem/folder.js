@@ -4,7 +4,7 @@ var path = require('path');
 
 function model(sequelize, DataTypes) {
 
-    var Folder =
+    var definition =
         sequelize.define(
             "folder",
             {
@@ -51,8 +51,7 @@ function model(sequelize, DataTypes) {
                 }
             }
         );
-
-    return Folder;
+    return definition;
 };
 
 function configure(getObjectHandler){

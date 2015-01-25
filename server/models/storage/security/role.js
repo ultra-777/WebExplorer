@@ -4,7 +4,7 @@
 "use strict";
 
 function model(sequelize, DataTypes) {
-    var Role =
+    var definition =
         sequelize.define(
             "role",
             {
@@ -19,11 +19,8 @@ function model(sequelize, DataTypes) {
                 // define the table's name
                 tableName: 'Roles'
             }
-
-    );
-
-    //Role.hasMany(User, { as: 'Users', through: 'user_roles' });
-    return Role;
+        );
+    return definition;
 };
 
 

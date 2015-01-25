@@ -5,7 +5,7 @@
 "use strict";
 
 function model(sequelize, DataTypes) {
-    var Session =
+    var definition =
         sequelize.define(
             "session",
             {
@@ -24,10 +24,8 @@ function model(sequelize, DataTypes) {
 
                 tableName: 'Sessions'
             }
-
         );
-
-    return Session;
+    return definition;
 };
 
 

@@ -1,8 +1,7 @@
 "use strict";
 
 function model(sequelize, DataTypes) {
-
-    var Tree =
+    var definition =
         sequelize.define(
             "tree",
             {
@@ -21,18 +20,17 @@ function model(sequelize, DataTypes) {
                 tableName: 'Trees'
             }
         );
-
-    return Tree;
+    return definition;
 };
 
 function configure(getObjectHandler){
-    var user = getObjectHandler('user', 'security');
+    var account = getObjectHandler('account', 'security');
     var tree = getObjectHandler('tree', 'fileSystem');
     var repository = getObjectHandler('repository', 'fileSystem');
     repository.hasOne(tree, {as: 'repository', foreignKey : 'repositoryId'});
-    user.hasOne(tree, {as: 'owner', foreignKey : 'ownerId'});
+    account.hasOne(tree, {as: 'owner', foreignKey : 'ownerId'});
     tree.belongsTo(repository);
-    tree.belongsTo(user, {as: 'owner'});
+    tree.belongsTo(account, {as: 'owner'});
 }
 
 

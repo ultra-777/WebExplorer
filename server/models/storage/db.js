@@ -134,7 +134,7 @@ module.exports = {
     init: initSequelize,
     initAndSynq: initSequelizeAndSynq,
     getObject: getObject,
-    Sequelize: Sequelize,
+    //Sequelize: Sequelize,
     buildPath: buildPath
 };
 

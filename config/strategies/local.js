@@ -16,12 +16,12 @@ module.exports = function() {
 		},
 		function(username, password, done) {
 
-			var user = db.getObject('user', 'security');
+			var user = db.getObject('account', 'security');
 			var role = db.getObject('role', 'security');
 			// console.log('-- strategies/local finding user: ' + username);
 			user.find(
 				{
-					where: { username: username },
+					where: { accountName: username },
 					include: [{ model: role, as: 'roles' }]
 				})
 				.then(function(user){

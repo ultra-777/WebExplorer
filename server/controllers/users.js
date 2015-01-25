@@ -41,52 +41,32 @@ var getErrorMessage = function(err) {
  */
 exports.signup = function(req, res) {
 
-	// For security measurement we remove the roles from the req.body object
-	delete req.body.roles;
-	var userSchema = db.getObject('user', 'security');
-	var user = userSchema.build(req.body);
-
-	user.provider = 'local';
-	user.displayName = user.firstName + ' ' + user.lastName;
-	// Then save the user
-	user.save()
-		.then(function () {
-			var roleSchema = db.getObject('role', 'security');
-			roleSchema.findAll({where: ['name = ?', 'user']})
-				.then(function(roles){
-					var count = roles.length;
-					if (count > 0){
-						var targetRole = roles[0];
-						user.setRoles([targetRole])
-							.success(function(){
-
-								// Remove sensitive data before login
-								user.password = undefined;
-								user.salt = undefined;
-
-								req.login(user, function (err) {
-									if (err) {
-										res.send(400, {
-											message: getErrorMessage(err)
-										});
-									} else {
-										res.jsonp(user);
-									}
-								});
-							})
-							.error(function(err){
-								res.send(400, {
-									message: getErrorMessage(err)
-								});
-							});
-					}
-				});
-		})
-		.catch(function (err) {
-			res.send(400, {
-				message: getErrorMessage(err)
-			});
-		});
+    var accountSchema = db.getObject('account', 'security');
+    accountSchema.create(
+        req.body.firstName,
+        req.body.lastName,
+        req.body.email,
+        req.body.username,
+        req.body.password,
+        'local',
+        'user',
+        function(account, err){
+            if (err){
+                res.send(400, {
+                    message: getErrorMessage(err)
+                });
+            }
+            else
+                req.login(account, function (err) {
+                    if (err) {
+                        res.send(400, {
+                            message: getErrorMessage(err)
+                        });
+                    } else {
+                        res.jsonp(account);
+                    }
+                });
+        });
 }
 
 /**
@@ -158,7 +138,7 @@ exports.changePassword = function(req, res, next) {
 	var message = null;
 
 	if (req.user) {
-		var userSchema = db.getObject('user', 'security');
+		var userSchema = db.getObject('account', 'security');
 		userSchema
 			.find(req.user.id)
 			.success(function(user){

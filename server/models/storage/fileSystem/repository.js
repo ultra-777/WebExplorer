@@ -5,7 +5,7 @@ var config = require('../../../../config/config');
 
 function model(sequelize, DataTypes) {
 
-    var Repository =
+    var definition =
         sequelize.define(
             "repository",
             {
@@ -27,7 +27,7 @@ function model(sequelize, DataTypes) {
             }
         );
 
-    return Repository;
+    return definition;
 };
 
 function exec(executeQueryHandler){

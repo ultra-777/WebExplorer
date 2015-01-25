@@ -4,8 +4,7 @@ var fs = require('fs');
 
 
 function model(sequelize, DataTypes) {
-
-    var Blob =
+    var definition =
         sequelize.define(
             "blob",
             {
@@ -49,7 +48,7 @@ function model(sequelize, DataTypes) {
                         var repositorySchema = sequelize.model('fileSystem.repository');
                         var nodeSchema = sequelize.model('fileSystem.node');
                         var treeSchema = sequelize.model('fileSystem.tree');
-                        var userSchema = sequelize.model('security.user');
+                        var userSchema = sequelize.model('security.account');
 
                         blobSchema
                             .find({
@@ -418,7 +417,7 @@ function model(sequelize, DataTypes) {
             }
         );
 
-    return Blob;
+    return definition;
 };
 
 function configure(getObjectHandler){

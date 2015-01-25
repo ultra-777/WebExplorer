@@ -24,9 +24,9 @@ module.exports = function() {
 			return;
 		}
 
-		var userScheme = db.getObject('user', 'security');
+		var accountScheme = db.getObject('account', 'security');
 		var roleScheme = db.getObject('role', 'security');
-		userScheme
+		accountScheme
 			.find(
 			{
 				where: { id: id },
