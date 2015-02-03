@@ -1,4 +1,37 @@
-<div class="container" data-ng-controller="HeaderController">
+<!-- <div class="container" data-ng-controller="HeaderController"> -->
+<div class="headerBorder" data-ng-controller="HeaderController">
+    <ul id="navigation">
+        <li data-ng-hide="authentication.user">
+            <a href="/#!/signin">Sign in</a>
+            <ul>
+                <li ui-route="/signup">
+                    <a href="/#!/signup">Signup</a>
+                </li>
+            </ul>
+        </li>
+        <li data-ng-hide="!authentication.user">
+            <a href="#" data-ng-bind="authentication.user.accountName"></a>
+            <ul>
+                <li ui-route="/signout">
+                    <a href="/auth/signout">Sign out</a>
+                </li>
+            </ul>
+        </li>
+        <li><a href="/#!/explorer"  data-ng-hide="!authentication.user">Explorer</a></li>
+        <!--
+        <li>
+            <a href="#">Categories</a>
+            <ul>
+                <li><a href="#">CSS</a></li>
+                <li><a href="#">Graphic design</a></li>
+                <li><a href="#">Development tools</a></li>
+                <li><a href="#">Web design</a></li>
+            </ul>
+        </li>
+        -->
+        <li style="float: left;margin-top: 2px;"><span class="titleText" ng-bind="( currentTime | timeFilter:'yyyy-MM-dd HH:mm:ss')"/></li>
+    </ul>
+    <!--
 	<div class="navbar-header">
 		<button class="navbar-toggle" type="button" data-ng-click="toggleCollapsibleMenu()">
 			<span class="sr-only">Toggle navigation</span>
@@ -7,6 +40,7 @@
 			<span class="icon-bar"></span>
 		</button>
 		<a href="/#!/" class="navbar-brand">Xmen</a>
+        <p class="title" ng-bind="( currentTime | timeFilter:'yyyy-MM-dd HH:mm:ss')"/>
 	</div>
 	<nav class="collapse navbar-collapse" collapse="!isCollapsed" role="navigation">
 		<ul class="nav navbar-nav" data-ng-if="menu.shouldRender(authentication.user);">
@@ -58,4 +92,5 @@
 			</li>
 		</ul>
 	</nav>
+    -->
 </div>

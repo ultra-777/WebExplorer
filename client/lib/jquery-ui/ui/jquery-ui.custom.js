@@ -1576,7 +1576,7 @@ $.widget("ui.draggable", $.ui.mouse, {
 
 		/*
 		 * - Position generation -
-		 * This block generates everything position related - it's the core of draggables.
+		 * This block generates everything position related - it's the home of draggables.
 		 */
 
 		//Cache the margins of the original element
@@ -4175,7 +4175,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 		/*
 		 * - Position generation -
-		 * This block generates everything position related - it's the core of draggables.
+		 * This block generates everything position related - it's the home of draggables.
 		 */
 
 		//Cache the margins of the original element
@@ -4530,7 +4530,7 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 	},
 
-	/* Be careful with the following core functions */
+	/* Be careful with the following home functions */
 	_intersectsWith: function(item) {
 
 		var x1 = this.positionAbs.left,
@@ -13911,7 +13911,7 @@ $.fn.extend({
 			}
 
 			// If the element already has the correct final state, delegate to
-			// the core methods so the internal tracking of "olddisplay" works.
+			// the home methods so the internal tracking of "olddisplay" works.
 			if ( elem.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
 				elem[ mode ]();
 				done();

@@ -1169,7 +1169,7 @@ $.fn.extend({
 			}
 
 			// If the element already has the correct final state, delegate to
-			// the core methods so the internal tracking of "olddisplay" works.
+			// the home methods so the internal tracking of "olddisplay" works.
 			if ( elem.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
 				elem[ mode ]();
 				done();

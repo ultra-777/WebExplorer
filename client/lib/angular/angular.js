@@ -172,11 +172,11 @@ function minErr(module) {
  * @module ng
  * @description
  *
- * # ng (core module)
+ * # ng (home module)
  * The ng module is loaded by default when an AngularJS application is started. The module itself
  * contains the essential components for an AngularJS application to function. The table below
  * lists a high level breakdown of each of the services/factories, filters, directives and testing
- * components available within this core module.
+ * components available within this home module.
  *
  * <div doc-module-components="ng"></div>
  */
@@ -1618,7 +1618,7 @@ function setupModuleLoader(window) {
      *
      * The `angular.module` is a global place for creating, registering and retrieving Angular
      * modules.
-     * All modules (angular core or 3rd party) that should be available to an application must be
+     * All modules (angular home or 3rd party) that should be available to an application must be
      * registered using this mechanism.
      *
      * When passed two or more arguments, a new module is created.  If passed only one argument, an
@@ -4185,10 +4185,10 @@ var $AnimateProvider = ['$provide', function($provide) {
      * @name $animate
      * @description The $animate service provides rudimentary DOM manipulation functions to
      * insert, remove and move elements within the DOM, as well as adding and removing classes.
-     * This service is the core service used by the ngAnimate $animator service which provides
+     * This service is the home service used by the ngAnimate $animator service which provides
      * high-level animation hooks for CSS and JavaScript.
      *
-     * $animate is available in the AngularJS core, however, the ngAnimate module must be included
+     * $animate is available in the AngularJS home, however, the ngAnimate module must be included
      * to enable full out animation support. Otherwise, $animate will only perform simple DOM
      * manipulation operations.
      *
@@ -7563,7 +7563,7 @@ function $HttpProvider() {
      * @requires $injector
      *
      * @description
-     * The `$http` service is a core Angular service that facilitates communication with the remote
+     * The `$http` service is a home Angular service that facilitates communication with the remote
      * HTTP servers via the browser's [XMLHttpRequest](https://developer.mozilla.org/en/xmlhttprequest)
      * object or via [JSONP](http://en.wikipedia.org/wiki/JSONP).
      *
@@ -13160,7 +13160,7 @@ function adjustMatchers(matchers) {
  * Typically, you would configure or override the {@link ng.$sceDelegate $sceDelegate} instead of
  * the `$sce` service to customize the way Strict Contextual Escaping works in AngularJS.  This is
  * because, while the `$sce` provides numerous shorthand methods, etc., you really only need to
- * override 3 core functions (`trustAs`, `getTrusted` and `valueOf`) to replace the way things
+ * override 3 home functions (`trustAs`, `getTrusted` and `valueOf`) to replace the way things
  * work because `$sce` delegates to `$sceDelegate` for these operations.
  *
  * Refer {@link ng.$sceDelegateProvider $sceDelegateProvider} to configure this service.
@@ -13651,7 +13651,7 @@ function $SceDelegateProvider() {
  *      one level of escaping depending on your templating engine and the way you interpolated
  *      the value.)  Do make use of your platform's escaping mechanism as it might be good
  *      enough before coding your own.  e.g. Ruby has
- *      [Regexp.escape(str)](http://www.ruby-doc.org/core-2.0.0/Regexp.html#method-c-escape)
+ *      [Regexp.escape(str)](http://www.ruby-doc.org/home-2.0.0/Regexp.html#method-c-escape)
  *      and Python has [re.escape](http://docs.python.org/library/re.html#re.escape).
  *      Javascript lacks a similar built in function for escaping.  Take a look at Google
  *      Closure library's [goog.string.regExpEscape(s)](
@@ -18282,7 +18282,7 @@ var ngBindTemplateDirective = ['$interpolate', function($interpolate) {
  * element in a secure way.  By default, the innerHTML-ed content will be sanitized using the {@link
  * ngSanitize.$sanitize $sanitize} service.  To utilize this functionality, ensure that `$sanitize`
  * is available, for example, by including {@link ngSanitize} in your module's dependencies (not in
- * core Angular.)  You may also bypass sanitization for values you know are safe. To do so, bind to
+ * home Angular.)  You may also bypass sanitization for values you know are safe. To do so, bind to
  * an explicitly trusted value via {@link ng.$sce#trustAsHtml $sce.trustAsHtml}.  See the example
  * under {@link ng.$sce#Example Strict Contextual Escaping (SCE)}.
  *

@@ -42,7 +42,7 @@ function $RouteProvider(  $stateProvider,    $urlRouterProvider) {
    *
    * @description
    * Registers a route with a given route definition object. The route definition
-   * object has the same interface the angular core route definition object has.
+   * object has the same interface the angular home route definition object has.
    * 
    * @example
    * <pre>
@@ -106,7 +106,7 @@ function $RouteProvider(  $stateProvider,    $urlRouterProvider) {
    * @description
    * The `$route` service provides interfaces to access defined routes. It also let's
    * you access route params through `$routeParams` service, so you have fully
-   * control over all the stuff you would actually get from angular's core `$route`
+   * control over all the stuff you would actually get from angular's home `$route`
    * service.
    */
   this.$get = $get;

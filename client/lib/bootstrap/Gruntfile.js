@@ -410,7 +410,7 @@ module.exports = function (grunt) {
 
   // Test task.
   var testSubtasks = [];
-  // Skip core tests if running a different subset of the test suite
+  // Skip home tests if running a different subset of the test suite
   if (runSubset('core')) {
     testSubtasks = testSubtasks.concat(['dist-css', 'csslint', 'jshint', 'jscs', 'qunit', 'build-customizer-html']);
   }
