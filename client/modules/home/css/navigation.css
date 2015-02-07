@@ -116,7 +116,3 @@
     clear: both;
     height: 0;
 }
-
-* html .navigation             { zoom: 1; } /* IE6 */
-*:first-child+html .navigation { zoom: 1; } /* IE7 */
-*:first-child+html .navigation { zoom: 1; } /* IE7 */
