@@ -1,4 +1,4 @@
-#navigation {
+.navigation {
     width: 100%;
     margin: 0;
     padding: 10px 0 0 0;
@@ -9,7 +9,7 @@
     box-shadow: 0 2px 1px #9c9c9c;
 }
 
-#navigation li {
+.navigation li {
     float: right;
     padding: 0 0 10px 0;
     position: relative;
@@ -21,7 +21,7 @@
     text-shadow: 0 -1px 0 rgba(0, 0, 0, .25);
 }
 
-#navigation a {
+.navigation a {
     float: left;
     height: 25px;
     padding: 0 25px;
@@ -32,20 +32,16 @@
     text-shadow: 0 1px 0 #000;
 }
 
-#navigation li:hover > a {
+.navigation li:hover > a {
     color: #fafafa;
 }
 
-*html #navigation li a:hover { /* IE6 */
-    color: #fafafa;
-}
-
-#navigation li:hover > ul {
+.navigation li:hover > ul {
     display: block;
 }
 
 /* Sub-menu */
-#navigation ul {
+.navigation ul {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -60,7 +56,7 @@
     border-radius: 5px;
 }
 
-#navigation ul li {
+.navigation ul li {
     float: none;
     margin: 0;
     padding: 0;
@@ -69,11 +65,11 @@
     0 2px 0 #777777;
 }
 
-#navigation ul li:last-child {
+.navigation ul li:last-child {
     box-shadow: none;
 }
 
-#navigation ul a {
+.navigation ul a {
     padding: 10px;
     height: auto;
     line-height: 1;
@@ -82,27 +78,16 @@
     float: none;
     text-transform: none;
 }
-
-*html #navigation ul a { /* IE6 */
-    height: 10px;
-    width: 150px;
-}
-
-*:first-child+html #navigation ul a { /* IE7 */
-    height: 10px;
-    width: 150px;
-}
-
-#navigation ul a:hover {
+.navigation ul a:hover {
     background-color: #0186ba;
     background-image: linear-gradient(#04acec, #0186ba);
 }
 
-#navigation ul li:first-child a {
+.navigation ul li:first-child a {
     border-radius: 5px 5px 0 0;
 }
 
-#navigation ul li:first-child a:after {
+.navigation ul li:first-child a:after {
     content: '';
     position: absolute;
     left: 30px;
@@ -114,16 +99,16 @@
     border-bottom: 8px solid #444;
 }
 
-#navigation ul li:first-child a:hover:after {
+.navigation ul li:first-child a:hover:after {
     border-bottom-color: #04acec;
 }
 
-#navigation ul li:last-child a {
+.navigation ul li:last-child a {
     border-radius: 0 0 5px 5px;
 }
 
 /* Clear floated elements */
-#navigation:after {
+.navigation:after {
     visibility: hidden;
     display: block;
     font-size: 0;
@@ -132,5 +117,6 @@
     height: 0;
 }
 
-* html #navigation             { zoom: 1; } /* IE6 */
-*:first-child+html #navigation { zoom: 1; } /* IE7 */
+* html .navigation             { zoom: 1; } /* IE6 */
+*:first-child+html .navigation { zoom: 1; } /* IE7 */
+*:first-child+html .navigation { zoom: 1; } /* IE7 */
