@@ -47,6 +47,7 @@
         "memorystream": "latest",
 	  	"pg": "latest",
 	  	"pg-native": "latest",
+        "pg-hstore": "latest",
 		"sequelize": "latest"
     },
 	"devDependencies": {
