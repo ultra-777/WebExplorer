@@ -4,12 +4,12 @@ angular.module('explorer').controller('ItemOptionsController', ['$scope', '$time
 	function(scope, timeout) {
 		scope.folderItems =
 			[
-				{ Title: 'Delete', Action: '2' }
+				{ Title: 'Delete', Action: '2', Icon: 'delete.png' }
 			];
 
 		scope.fileItems =
 			[
-				{ Title: 'Delete', Action: '2' }
+				{ Title: 'Delete', Action: '2', Icon: 'delete.png' }
 			];
 
 		scope.getItems = function() {

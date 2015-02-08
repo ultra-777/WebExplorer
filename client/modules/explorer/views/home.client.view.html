@@ -33,8 +33,8 @@
 
         <ul class="dropdown-menu">
             <li><a href="#" ng-click="onNewFolder()">New Folder</a></li>
-            <li><a href="#" ng-click="onUploadFile()">Upload File</a></li>
-            <li><a href="#" ng-click="onUploadFile2()">Upload File 2</a></li>
+            <li><a href="#" ng-click="onUploadFile()">Upload</a></li>
+            <li><a href="#" ng-click="onUploadFile2()">Fast Upload</a></li>
             <!--<li><a href="#" ng-click="onUploadFolder()">Upload Folder</a></li>-->
         </ul>
 
@@ -46,7 +46,8 @@
     </div>
     <br />
 
-    <div style="height: 400px; overflow-y: scroll;">
+    <!--<div style="height: 400px; overflow-y: scroll;">-->
+    <div>
         <tree-item-data
             data-ng-repeat="itemData in currentFolder.Children" />
     </div>

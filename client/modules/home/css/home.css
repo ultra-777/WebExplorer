@@ -1,6 +1,14 @@
+
 .content {
-	margin-top: 50px;
+	margin-top: 10px;
 }
+
+.container {
+    width: auto;
+    margin: 0 10px 10px 10px ;
+    overflow-y: auto;
+}
+
 .undecorated-link:hover {
 	text-decoration: none;
 }
@@ -9,7 +17,7 @@
 }
 
 .headerBorder {
-    margin: 40px 40px 0 40px;
+    margin: 10px 10px 0 10px;
 }
 
 .titleText {

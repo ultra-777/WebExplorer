@@ -18,7 +18,6 @@ angular.module('explorer').directive('showOnRowHover', [
                     element.parent().removeClass('open');
 
                 });
-
             }
         };
 	}
