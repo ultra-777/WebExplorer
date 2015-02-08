@@ -10,8 +10,9 @@ var db = require('./server/models/storage/db');
 
 if (process.env.NODE_ENV === 'production') {
 	console.log = function(){};
-}
 
+}
+cluster.schedulingPolicy = cluster.SCHED_RR;
 var stateTracker = function (period, deviationRate, callback) {
 
 	var initialValue = null;
@@ -59,7 +60,6 @@ var stateTracker = function (period, deviationRate, callback) {
 
 
 if (cluster.isMaster) {
-
 	db
 		.initAndSynq(config.db)
 		.then(function() {
