@@ -1,5 +1,5 @@
 <section data-ng-controller="ExplorerController">
-	<table >
+	<table>
         <tr>
             <td height="32">
                 <button data-ng-click="moveBack()" data-ng-if="canBack" class="folderHeader">
@@ -47,7 +47,7 @@
     <br />
 
     <!--<div style="height: 400px; overflow-y: scroll;">-->
-    <div>
+    <div autoresize data-resize-offset="30">
         <tree-item-data
             data-ng-repeat="itemData in currentFolder.Children" />
     </div>

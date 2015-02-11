@@ -1,12 +1,21 @@
+body {
+    height: 100%;
+    overflow-y: auto;
+}
+
+html {
+    height: 100%;
+    overflow-y: auto;
+}
 
 .content {
 	margin-top: 10px;
+    margin-bottom: 0;
 }
 
 .container {
     width: auto;
-    margin: 0 10px 10px 10px ;
-    overflow-y: auto;
+    margin: 0 ;
 }
 
 .undecorated-link:hover {
@@ -14,6 +23,7 @@
 }
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
 	display: none !important;
+    position:absolute;height:50%
 }
 
 .headerBorder {
