@@ -13,6 +13,7 @@ angular.module('explorer').controller('ExplorerController', [
         scope.transferRate = 0;
 		scope.currentBlob = null;
         scope.currentUploader = null;
+        scope.isUploading = false;
 
 		scope.upload = function() {
 			alert('cheers');
@@ -41,7 +42,10 @@ angular.module('explorer').controller('ExplorerController', [
 					scope.applyScopeFolder(data);
 				},
 				function (error) {
-					alert(error);
+                    messageBox.show(
+                        'Exception',
+                        error
+                    );
 				}
 			);
 		};
@@ -55,14 +59,19 @@ angular.module('explorer').controller('ExplorerController', [
 				},
 				function (error) {
 					scope.isNavigating = false;
-					alert(error);
+                    messageBox.show(
+                        'Exception',
+                        error
+                    );
 				}
 			);
 		};
 
 		scope.applyScopeFolder = function (newFolder) {
-            if (newFolder.Children !== null)
+            if (newFolder.Children)
                 newFolder.Children.sort(compareChildren);
+            else
+                newFolder.Children = new Array();
 			scope.currentFolder = newFolder;
 			scope.path.push(newFolder);
 			scope.canBack = (scope.path.length > 1);
@@ -103,7 +112,10 @@ angular.module('explorer').controller('ExplorerController', [
 				},
 				function (error) {
 					scope.isDownloading = false;
-					alert(error);
+                    messageBox.show(
+                        'Exception',
+                        error
+                    );
 				}
 			);
 		};
@@ -134,7 +146,10 @@ angular.module('explorer').controller('ExplorerController', [
 				},
 				function (error) {
 					scope.isNavigating = false;
-					alert(error);
+                    messageBox.show(
+                        'Exception',
+                        error
+                    );
 				}
 			);
 		};
@@ -193,7 +208,10 @@ angular.module('explorer').controller('ExplorerController', [
                         scope.currentFolder.Children.sort(compareChildren);
 					},
 					function (error) {
-						alert(error);
+                        messageBox.show(
+                            'Exception',
+                            error
+                        );
 					});
 			}, function () {
 				var w = 0;
@@ -246,6 +264,7 @@ angular.module('explorer').controller('ExplorerController', [
 		};
 
 		scope.onStopUploading = function() {
+            scope.isUploading = false;
 			if (scope.currentBlob !== null) {
 				dataService.releaseBlob(scope.currentBlob);
 				scope.currentBlob = null;
@@ -270,13 +289,20 @@ angular.module('explorer').controller('ExplorerController', [
 			modalInstance.result.then(function (fileInfo) {
 
 				if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
-					alert('File API не поддерживается данным браузером');
+                    messageBox.show(
+                        'Exception',
+                        'File API не поддерживается данным браузером'
+                    );
 					return;
 				}
-				
-				//alert('Source: ' + fileInfo.source + '  Name: ' + fileInfo.name);
 
+                scope.isUploading = true;
 				var taskInfo = scope.newTask(fileInfo.source.size);
+
+                var interruptLoading = function(){
+                    scope.currentBlob = null;
+                    scope.$digest();
+                };
 
 				dataService.initBlob(scope.currentFolder.Id, fileInfo.name, fileInfo.source.size, taskInfo.step)
 					.then(function(blobIdObject) {
@@ -294,6 +320,10 @@ angular.module('explorer').controller('ExplorerController', [
 
 								if (evt.target.readyState === FileReader.DONE) { // DONE == 2
 
+                                    if (!scope.isUploading){
+                                        interruptLoading();
+                                        return;
+                                    }
 
 									var data = evt.target.result;
 									data = data.substr(data.lastIndexOf(',') + 1);
@@ -322,6 +352,10 @@ angular.module('explorer').controller('ExplorerController', [
 												}
 
 												if (taskInfo.left > 0) {
+                                                    if (!scope.isUploading){
+                                                        interruptLoading();
+                                                        return;
+                                                    }
 													blob = fileInfo.source.slice(taskInfo.start, taskInfo.end);
 													reader.readAsDataURL(blob);
 												} else {
@@ -342,23 +376,24 @@ angular.module('explorer').controller('ExplorerController', [
 											}
 											else {
 												dataService.releaseBlob(scope.currentBlob);
-												scope.currentBlob = null;
-												scope.$digest();
+                                                scope.interruptLoading();
 											}
 										},
 										function(result) {
 											dataService.releaseBlob(scope.currentBlob);
-											scope.currentBlob = null;
-											alert(result);
-											scope.$digest();
+                                            scope.interruptLoading();
+                                            messageBox.show(
+                                                'Exception',
+                                                result
+                                            );
 										});
 
 
 								} else {
-									var q = 99;
+                                    scope.interruptLoading();
 								}
 							} else {
-								var qq = 99;
+                                scope.interruptLoading();
 							}
 						};
 
@@ -385,7 +420,10 @@ angular.module('explorer').controller('ExplorerController', [
                 var file = fileInfo.source;
 
                 if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
-                    alert('File API не поддерживается данным браузером');
+                    messageBox.show(
+                        'Exception',
+                        'File API не поддерживается данным браузером'
+                    );
                     return;
                 }
 
@@ -465,7 +503,10 @@ angular.module('explorer').controller('ExplorerController', [
         };
 
 		scope.onUploadFolder = function() {
-			alert('onUploadFolder');
+            messageBox.show(
+                'Wow',
+                'onUploadFolder'
+            );
 		};
 		
 		scope.getData();
