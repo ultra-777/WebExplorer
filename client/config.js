@@ -10,8 +10,8 @@ var ApplicationConfiguration = (function() {
 		'ngAnimate',  
 		'ngTouch',  
 		'ngSanitize',  
-		'ui.router', 
-		'ui.bootstrap', 
+		'ui.router',
+		'ui.bootstrap',
 		'ui.utils'];
 
 	// Add a new vertical module

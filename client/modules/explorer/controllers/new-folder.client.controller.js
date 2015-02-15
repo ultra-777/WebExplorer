@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('explorer').controller('NewFolderController', ['$scope', '$modalInstance', 'children',
-	function(scope, modalInstance, children) {
+angular.module('explorer').controller('NewFolderController', ['$scope', '$modalInstance', 'messageBoxService', 'children',
+    function(scope, modalInstance, messageBox, children) {
 		
 		scope.current = {
 			name: 'Not Defined'
@@ -40,7 +40,10 @@ angular.module('explorer').controller('NewFolderController', ['$scope', '$modalI
 
 		scope.ok = function () {
 			if (!scope.checkName(scope.current.name))
-				alert('The name ' + scope.current.name + ' already exists');
+                messageBox.show(
+                    'Exception',
+                    'The name ' + scope.current.name + ' already exists'
+                );
 			else
 				modalInstance.close(scope.current.name);
 		};
