@@ -1,0 +1,6 @@
+/.idea/
+/client/dist/
+/client/lib/
+/node_modules/
+/repository/
+/server/ssl

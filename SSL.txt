@@ -1,0 +1,4 @@
+cd /d /server/ssl
+openssl genrsa 4096 > key.pem
+openssl req -new -key key.pem -out csr.pem
+openssl x509 -req -days 1825 -in csr.pem -signkey key.pem -out certificate.crt
