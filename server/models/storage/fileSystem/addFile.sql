@@ -98,7 +98,7 @@ BEGIN
 					hierarchy 
 				order by
 					level desc
-				limit 2
+				--limit 2
 			) ls on ls.level = h.level
 		order by h.level, h."parentId"
 	) source;
