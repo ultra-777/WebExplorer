@@ -140,6 +140,7 @@ if (cluster.isMaster) {
 			cluster.on('exit', function (worker, code, signal) {
 				if (signal) {
 					console.log('Worker died with signal (ID: %d, PID: %d)', worker.id, worker.process.pid);
+                    recoverNodes(true);
 				}
 				else if (code) {
 					console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
