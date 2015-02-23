@@ -101,13 +101,6 @@ if (cluster.isMaster) {
 			// Create a worker for each CPU
 			var debugPort = 5859;
 			var portIndex = debugPort;
-			var workerDownHistory  = new Object();
-			var checkIfRecoverRequired = function(id){
-				if (workerDownHistory[id])
-					return false;
-				workerDownHistory[id] = true;
-				return true;
-			}
 
 			var recoverNodes = function(urgent){
 				var currentNodesCount =
@@ -115,7 +108,7 @@ if (cluster.isMaster) {
 						Object.keys(cluster.workers).length
 						: 0;
 				var requiredAmount = cpuCount - currentNodesCount;
-				var launchTimeout = urgent ? 0 : config.workerLaunchSpread;
+				var launchTimeout = (urgent || (currentNodesCount === 0)) ? 0 : config.workerLaunchSpread;
 				for (var i = 0; i < requiredAmount; i += 1) {
 					setTimeout(function () {
 						if (debug) {
@@ -138,9 +131,9 @@ if (cluster.isMaster) {
 				console.log('--worker %s listening on %s:%d', worker.id, addr.address, addr.port);
 			});
 			cluster.on('disconnect', function (worker) {
-				if (checkIfRecoverRequired(worker.id))
+                console.log('--worker %s disconnected on %s:%d', worker.id);
+				//if (checkIfRecoverRequired(worker.id))
 					recoverNodes(true);
-				console.log('--worker %s disconnected on %s:%d', worker.id);
 			});
 
 			recoverNodes(false);
@@ -151,7 +144,7 @@ if (cluster.isMaster) {
 				}
 				else if (code) {
 					console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
-					if (checkIfRecoverRequired(worker.id))
+					//if (checkIfRecoverRequired(worker.id))
 						recoverNodes(true);
 				}
 			});
