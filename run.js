@@ -109,6 +109,7 @@ if (cluster.isMaster) {
 						: 0;
 				var requiredAmount = cpuCount - currentNodesCount;
 				var launchTimeout = (urgent || (currentNodesCount === 0)) ? 0 : config.workerLaunchSpread;
+                console.log('--Current nodes count: %d', currentNodesCount);
 				for (var i = 0; i < requiredAmount; i += 1) {
 					setTimeout(function () {
 						if (debug) {
@@ -128,12 +129,10 @@ if (cluster.isMaster) {
 				console.log('--worker %s online', worker.id);
 			});
 			cluster.on('listening', function (worker, addr) {
-				console.log('--worker %s listening on %s:%d', worker.id, addr.address, addr.port);
+				console.log('--worker %s listening on %s:%s:%d', worker.id, addr.addressType, addr.address, addr.port);
 			});
 			cluster.on('disconnect', function (worker) {
                 console.log('--worker %s disconnected on %s:%d', worker.id);
-				//if (checkIfRecoverRequired(worker.id))
-					recoverNodes(true);
 			});
 
 			recoverNodes(false);
@@ -144,8 +143,7 @@ if (cluster.isMaster) {
 				}
 				else if (code) {
 					console.log('Worker died (ID: %d, PID: %d, code: %d)', worker.id, worker.process.pid, code);
-					//if (checkIfRecoverRequired(worker.id))
-						recoverNodes(true);
+    				recoverNodes(true);
 				}
 			});
 		})
