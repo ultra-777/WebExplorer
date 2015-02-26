@@ -209,6 +209,7 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
                     lastTransferred = transferred;
                     scope.transferRate = transferredBytes * 1000 / interval;
                     scope.transferDuration = Math.floor((currentTime - startTime) / 1000);
+                    scope.$digest();
                 };
 
                 scope.currentUploader.onload = function() {
