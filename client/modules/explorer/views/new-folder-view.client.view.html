@@ -1,11 +1,15 @@
-<div class="modal-header">
-	<h3>Add new folder</h3>
-</div>
-<div class="modal-body">
-	<h4>Name: </h4>
-	<input type="text" ng-model="current.name" />
-</div>
-<div class="modal-footer">
-	<button class="btn btn-primary" ng-click="ok()">OK</button>
-	<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
-</div>
+<form>
+    <fieldset>
+    <div class="modal-header">
+        <h3>Add new folder</h3>
+    </div>
+    <div class="modal-body">
+        <h4>Name: </h4>
+        <input type="text" ng-model="current.name" placeholder="Type new folder name" autofocus />
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="submit" ng-click="ok()" ng-if="current.name">OK</button>
+        <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+    </div>
+    </fieldset>
+</form>

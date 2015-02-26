@@ -1,79 +1,14 @@
-<section data-ng-controller="ExplorerController">
-	<table>
-        <tr>
-            <td height="32">
-                <button data-ng-click="moveBack()" data-ng-if="canBack" class="folderHeader">
-                    <img src="modules/explorer/img/back.png" height="16" width="16" />Back
-                </button>
-            </td>
-            <td>
-                <img src="modules/explorer/img/wait.gif" height="16" width="16" ng-if="isNavigating" />
-            </td>
-        </tr>
-    </table>
-
-
-    <table>
-        <tr>
-            <td
-                tree-folder-data
-                data-ng-repeat="itemData in path"></td>
-        </tr>
-    </table>
-
-
-    <br />
-
-    <div class="dropdown" dropdown>
-
-        <img
-            class="dropdown-toggle"
-            dropdown-toggle
-            src="modules/explorer/img/folder-small.png"
-            height="24"
-            width="24" />
-
-
-        <ul class="dropdown-menu">
-            <li><a href="#" ng-click="onNewFolder()">New Folder</a></li>
-            <li><a href="#" ng-click="onUploadFile()">Upload</a></li>
-            <li><a href="#" ng-click="onUploadFile2()">Fast Upload</a></li>
-        </ul>
-
-        <button data-ng-click="onStopUploading()" data-ng-show="currentBlob !== null || currentUploader !== null">Stop</button>
-        <span data-ng-show="currentBlob !== null || currentUploader !== null"> Transfer Rate: {{transferRate | bytes }} /sec </span>
-    </div>
-
-    <div data-ng-show="currentBlob !== null || currentUploader !== null">
-    {{percent | percentage : 2}}
-    </div>
-    <br />
-
-    <!--
-        <div style="border: 4px double black; background: #fc3;padding: 5px;width: 800px" autoresize data-resize-offset="30">
-            <splitter orientation="horizontal" handler-size="3">
-                <splitter-pane min-size="30"><div style="background: cornsilk;min-height: 200px;">
-                    <tree-item-data data-ng-repeat="itemData in currentFolder.Children" />
+<section data-ng-controller="explorerController">
+     <div autoresize data-resize-offset="30">
+        <splitter orientation="horizontal">
+            <splitter-pane min-size="30" default-size="200">
+                <div>
+                    <data-tree-node data-folder-info="driveInfo" data-on-selection-changed="onSelectedFolderChanged(id)"></data-tree-node>
                 </div>
-                </splitter-pane>
-                <splitter-pane min-size="30">
-                    <splitter orientation="vertical" >
-                        <splitter-pane min-size="30"><div style="background: slategray;">Pane Top</div></splitter-pane>
-                        <splitter-pane min-size="30">
-                            <splitter orientation="vertical" >
-                                <splitter-pane min-size="30"><div style="background: slategray;">Pane Top</div></splitter-pane>
-                                <splitter-pane min-size="30"><div style="background: slategray;">Pane Bottom</div></splitter-pane>
-                            </splitter>
-                        </splitter-pane>
-                    </splitter>
             </splitter-pane>
-            </splitter>
-        </div>
-        -->
-
-        <div autoresize data-resize-offset="30">
-            <tree-item-data
-                data-ng-repeat="itemData in currentFolder.Children" />
-        </div>
-        <br />
+            <splitter-pane min-size="30">
+                <file-list node-id="currentNodeId" />
+            </splitter-pane>
+        </splitter>
+    </div>
 </section>

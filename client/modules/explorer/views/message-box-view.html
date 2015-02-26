@@ -1,9 +1,13 @@
-<div class="modal-header">
-    <h3 ng-bind="dialogOptions.title"/>
-</div>
-<div class="modal-body">
-    <p ng-bind-html="dialogOptions.message"/>
-</div>
-<div class="modal-footer">
-    <button class="btn btn-primary" ng-click="ok()">OK</button>
-</div>
+<form>
+    <fieldset>
+        <div class="modal-header">
+            <h3 ng-bind="dialogOptions.title"/>
+        </div>
+        <div class="modal-body">
+            <p ng-bind-html="dialogOptions.message"/>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" type="submit"  ng-click="ok()"  autofocus>OK</button>
+        </div>
+    </fieldset>
+</form>

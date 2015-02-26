@@ -1,0 +1,80 @@
+<div>
+    <span class="fileListToolSpan">
+        <span class="fileListToolGroup" data-ng-show="!isUploading">
+            <a
+                title="Upload by chunks"
+                class="fileListCommandRef"
+                ng-click="uploadByChunks()">
+                <img
+                    class="fileListCommandImage"
+                    src="modules/explorer/img/upload-by-chunks.png"/>
+            </a>
+            <a
+                title="Upload fast"
+                class="fileListCommandRef"
+                ng-click="uploadFast()">
+                <img
+                    class="fileListCommandImage"
+                    src="modules/explorer/img/upload-fast.png"/>
+            </a>
+        </span>
+        <span class="fileListToolGroup" data-ng-show="isUploading">
+            <a
+                title="Stop uploading"
+                class="fileListCommandRef"
+                ng-click="stopUploading()">
+                <img
+                    class="fileListCommandImage"
+                    src="modules/explorer/img/stop.png"/>
+            </a>
+             <span class="fileListTransferStatistics">
+                 {{percent | percentage : 2}}
+             </span>
+            <span class="fileListTransferStatistics">
+                {{transferRate | bytes }} /sec
+            </span>
+            <span class="fileListTransferStatistics">
+                {{transferDuration | duration}}
+            </span>
+        </span>
+    </span>
+    <hr class="fileListSeparatorLine"/>
+    <table class="fileListTable">
+        <tr ng-repeat="file in files" >
+            <td class="fileListSpaceCell"/>
+            <td class="fileListTitleCell">
+                <div class="{{'fileListTitleDiv' + (file.isSelected ? ' selected' : '')}}" ng-click="file.select()">
+                    <span
+                        class="{{'fileListContentTitle' + (file.isSelected ? ' selected' : '')}}"
+                        popover-placement="right"
+                        popover="{{file.size | bytes}}"
+                        popover-trigger="mouseenter">
+                        {{file.name}}
+                    </span>
+                    <span class="fileListFileOptions">
+                        <a
+                            title="Download"
+                            class="fileListCommandRef"
+                            href="{{file.href}}"
+                            ng-show="file.isSelected">
+                            <img
+                                class="fileListMenuImage"
+                                src="modules/explorer/img/download.png"/>
+                        </a>
+                        <a
+                            title="Delete"
+                            class="fileListCommandRef"
+                            ng-click="file.delete()"
+                            ng-show="file.isSelected">
+                            <img
+                                class="fileListMenuImage"
+                                src="modules/explorer/img/delete-small.png"/>
+                        </a>
+                    </span>
+                </div>
+            </td>
+            <td class="fileListSpaceCell"/>
+        </tr>
+    </table>
+</div>
+

@@ -2,11 +2,6 @@
 
 angular.module('explorer').controller('NewFolderController', ['$scope', '$modalInstance', 'messageBoxService', 'children',
     function(scope, modalInstance, messageBox, children) {
-		
-		scope.current = {
-			name: 'Not Defined'
-		};
-
 
 		scope.getProposedName = function () {
 			var result = false;
@@ -29,7 +24,7 @@ angular.module('explorer').controller('NewFolderController', ['$scope', '$modalI
                 var length = children.length;
                 for (var i = 0; i < length; i++) {
                     var child = children[i];
-                    if (child.Name === candidate) {
+                    if (child.data.name.toLowerCase() === candidate.toLowerCase()) {
                         result = false;
                         break;
                     }
@@ -52,6 +47,6 @@ angular.module('explorer').controller('NewFolderController', ['$scope', '$modalI
 			modalInstance.dismiss('cancel');
 		};
 
-		scope.getProposedName();
+		//scope.getProposedName();
 	}
 ]);

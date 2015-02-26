@@ -21,6 +21,32 @@ angular.module('explorer')
             return template;
         };
 
+        function findStyle(selector) {
+            for(var s in document.styleSheets){
+                var sheet = document.styleSheets[s];
+                if (!sheet)
+                    continue;
+                var rules = sheet.cssRules;
+                for(var r in rules) {
+                    var rule = rules[r];
+                    if (!rule)
+                        continue;
+                    if(rule.selectorText == selector)
+                        return rule.style;
+                }
+            }
+            return null;
+        };
+
+        function applyDefaultSize(pane, isVertical){
+            if (pane.defaultSize && !pane.defaultSizeApplied){
+                pane.elem.css((isVertical ? 'height' : 'width'), pane.defaultSize + 'px');
+                pane.defaultSizeApplied = true;
+            }
+        };
+
+        var handlerContent = '<table width="100%" height="100%"><tr ><td class="handler-content"></td></tr></table>';
+
 
         return {
             restrict: 'E',
@@ -30,7 +56,6 @@ angular.module('explorer')
                 orientation: '@',
                 handlerSize: '@'
             },
-            //template: '<table class="split-panes {{orientation}}" ng-transclude></table>',
             template: function(element){
                 var orientation = element.attr('orientation');
                 return getTemplate(orientation);
@@ -47,24 +72,59 @@ angular.module('explorer')
             },
             link: function(scope, element, attrs) {
                 var vertical = scope.orientation == 'vertical';
-                var handlerSize = (scope.handlerSize) || 4;
+                var extraSize = null;
+                var handlerSize = scope.handlerSize;
+                if (handlerSize) {
+                    handlerSize = parseInt(handlerSize);
+                    extraSize = handlerSize;
+                }
+                else {
+                    var style =
+                        findStyle(
+                            vertical ?
+                                '.split-panes.vertical > .split-handler'
+                                : '.split-panes.horizontal > .split-handler');
+                    if (style) {
+                        handlerSize =
+                            parseInt(
+                                vertical ?
+                                    style.height
+                                    : style.width);
+                    }
+                }
+                if (!handlerSize)
+                    handlerSize = 5;
                 var handler =
                     vertical ?
-                        angular.element('<tr class="split-handler" style="height: ' + handlerSize + 'px;"><td/></tr>')
-                        : angular.element('<td class="split-handler" style="width: ' + handlerSize + 'px;"></td>');
+                        angular.element(
+                            '<tr class="split-handler"' +
+                            (extraSize ? (' style="height: ' + extraSize + 'px;"') : '') +
+                            '>' +
+                            handlerContent +
+                            '<td/></tr>')
+                        : angular.element(
+                            '<td class="split-handler"' +
+                            (extraSize ? (' style="width: ' + extraSize + 'px;"') : '') +
+                            '>' +
+                            handlerContent +
+                            '</td>');
 
                 var pane1 = scope.panes[0];
                 var pane2 = scope.panes[1];
                 var pane1Min = pane1.minSize || 0;
                 var pane2Min = pane2.minSize || 0;
 
+                applyDefaultSize(pane1, vertical);
+                applyDefaultSize(pane2, vertical);
+
                 var drag = false;
 
                 pane1.elem.after(handler);
-                console.log("handler:" + vertical ? 'vertical' : 'horizontal');
 
                 var div1 = pane1.elem.find('div:first');
                 var div2 = pane2.elem.find('div:first');
+
+                var handlerOffset = 0;
 
                 element.bind('mousemove', function (ev) {
                     if (!drag) return;
@@ -75,8 +135,7 @@ angular.module('explorer')
                     if (vertical) {
 
                         var height = bounds.bottom - bounds.top;
-
-                        pos = ev.clientY - bounds.top;
+                        pos = ev.clientY - bounds.top - handlerOffset;
                         scope.pos = pos;
 
                         if (pos < pane1Min) return;
@@ -93,7 +152,8 @@ angular.module('explorer')
                     } else {
 
                         var width = bounds.right - bounds.left;
-                        pos = ev.clientX - bounds.left;
+                        pos = ev.clientX - bounds.left - handlerOffset;
+                        scope.pos = pos;
 
                         var pane2Width = width - pos - handlerSize;
 
@@ -112,6 +172,24 @@ angular.module('explorer')
                 });
 
                 handler.bind('mousedown', function (ev) {
+
+                    var bounds = element[0].getBoundingClientRect();
+                    if (vertical) {
+
+                        var height = bounds.bottom - bounds.top;
+                        var pos = ev.clientY - bounds.top;
+                        var pane1Height = parseInt(pane1.elem.css('height'));
+                        if (pane1Height < pos)
+                            handlerOffset = pos - pane1Height;
+                    }
+                    else{
+                        var width = bounds.right - bounds.left;
+                        var pos = ev.clientX - bounds.left;
+                        var pane1Width = parseInt(pane1.elem.css('width'));
+                        if (pane1Width < pos)
+                            handlerOffset = pos - pane1Width;
+                    }
+                    console.log('handlerOffset: ' + handlerOffset);
                     ev.preventDefault();
                     drag = true;
                 });
@@ -228,7 +306,8 @@ angular.module('explorer')
             replace: true,
             transclude: true,
             scope: {
-                minSize: '='
+                minSize: '=',
+                defaultSize: '='
             },
             template: function(element){
                 var splitter = element.closest('splitter');
@@ -236,20 +315,6 @@ angular.module('explorer')
                 return getTemplate(orientation);
             },
             link: function(scope, element, attrs, bgSplitterCtrl) {
-                /*
-                 var parentPane = element.closest('div');
-                 if ((parentPane !== undefined) && (parentPane !== null)){
-                 parentPane.css('overflow-y', 'hidden');
-                 parentPane.css('overflow-x', 'hidden');
-                 }
-
-
-                 var table = element.closest('tr');
-                 table.resize(function() {
-                 console.log('table.height: ' + '11');
-                 });
-                 */
-
                 scope.elem = element;
                 scope.index = bgSplitterCtrl.addPane(scope);
             }

@@ -1,6 +1,5 @@
-/**
- * Created by Andrey on 11.02.2015.
- */
+'use strict';
+
 angular.module('explorer').directive('autoresize', function ($window) {
     return function (scope, element, attrs) {
         var w = angular.element($window);

@@ -1,0 +1,61 @@
+<div>
+    <table class="nodeTable">
+        <tr >
+            <td class="headerCell">
+                <table class="nodeTable">
+                    <tr>
+                        <td>
+                            <img src="modules/explorer/img/wait.gif" class="nodeSmallImage" ng-show="isAsynqOperation" />
+                        </td>
+                        <td class="nodeIndentSpaceCell" ng-show="!hasChildren()"/>
+                        <td ng-show="hasChildren()">
+                            <a class="nodeToggleRef" ng-click="expand()">
+                                <img
+                                    class="nodeToggleImage"
+                                    ng-show="hasChildren()"
+                                    src="{{'modules/explorer/img/' + (isExpanded ? 'collapse' : 'expand') + '.png'}}"/>
+                            </a>
+                        </td>
+                        <td class="nodeTitleCell">
+                            <div class="{{'nodeTitleDiv' + (isSelected ? ' selected' : '')}}" ng-click="select()">
+                                <span class="{{'nodeContentTitle' + (isSelected ? ' selected' : '')}}">{{data.name}}</span>
+                                <span class="nodeContentTitle leafsCounter" ng-show="hasChildren() && !isExpanded">({{children.length}})</span>
+                                <span class="dropdown nodeMenu" dropdown ng-show="isSelected">
+                                    <img
+                                        class="dropdown-toggle nodeMenuImage"
+                                        dropdown-toggle
+                                        src="modules/explorer/img/ui-menu-icon.png"/>
+
+                                    <ul class="dropdown-menu dropdown-menu-right">
+                                        <li ng-show="canDelete()"><a class="nodeMenuRef" ng-click="delete()">Delete</a></li>
+                                        <li><a class="nodeMenuRef" ng-click="newNode()">New</a></li>
+                                    </ul>
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="nodeEndSpaceCell"/>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr ng-show="isExpanded">
+            <td>
+                <table class="nodeTable">
+                    <tr>
+                        <td class="nodeIndentCell"/>
+                        <td class="nodeChildLevelCell">
+                            <table class="nodeTable" ng-cloak>
+                                <tr ng-repeat="child in dataChildren">
+                                    <td>
+                                        <data-tree-node data-folder-info="child" data-parent-node="$parent"></data-tree-node>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>

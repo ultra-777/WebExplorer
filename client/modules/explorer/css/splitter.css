@@ -11,7 +11,7 @@
 
 .split-panes > .split-handler
 {
-    background: darkgray;
+    background: transparent;
     position: relative;
     z-index: 999;
 }
@@ -19,10 +19,9 @@
 
 .split-panes.horizontal > .split-handler
 {
-    width: 0px;
+    width: 4px;
     top: 0px;
     bottom: 0px;
-    background: darkgray;
     cursor: ew-resize;
 }
 
@@ -40,18 +39,17 @@
 
 .split-panes.horizontal > .split-pane2
 {
-    right: 0px;
+    right: 5px;
     background: coral;
     position: relative;
 }
 
 .split-panes.vertical > .split-handler
 {
-    height: 10px;
+    height: 5px;
     top: 0;
     left: 0px;
     right: 0px;
-    background: blue;
     cursor: ns-resize;
 }
 
@@ -71,4 +69,29 @@
 {
     bottom: 0px;
     background: violet;
+}
+
+.handler-content{
+    border-radius:3px;
+    padding: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d3d3d3;
+    background: transparent;
+    height: 100%;
+    width: 100%;
+    display:block;
+}
+
+.handler-content:hover{
+    border-color: darkgray;
+    background: #d3d3d3;
+    height: 100%;
+    width: 100%;
+    display:block;
+}
+
+.handler-content:active {
+    border-color: #000000;
+    background: darkgray;
 }

@@ -1,0 +1,93 @@
+
+.fileListTable {
+    width: 100%;
+    cellspacing: 0;
+    cellpadding: 0;
+}
+
+.fileListTitleCell {
+    width: 100%;
+}
+
+.fileListTitleDiv {
+    border-radius:3px;
+    padding: 0;
+    height: 22px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    margin: 0 5px 0 0;
+    padding: 0 0 0 5px;
+    width: 100%;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.fileListTitleDiv.selected {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fffff9), color-stop(47%,#fff2cf), color-stop(100%,#fef4d2));
+    background: -ms-linear-gradient(top,  #fffff9 0%,#fff2cf 47%,#fef4d2 100%);
+    border-color: #DDCF9B;
+}
+
+.fileListContentTitle {
+    font-family: verdana;
+    font-size: 13px;
+}
+
+.fileListMenuImage {
+    max-width: 16px;
+    max-height: 16px;
+    padding: 0;
+    margin: 0 0 3px 0;
+    background: transparent;
+}
+
+.fileListCommandImage {
+    max-width: 24px;
+    max-height: 24px;
+    margin: 0 0 3px 0;
+    background: transparent;
+}
+
+a.fileListCommandRef {
+    text-decoration: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+
+hr.fileListSeparatorLine {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-style: inset;
+    border-width: 1px;
+}
+
+.fileListSpaceCell {
+    min-width: 10px;
+    ax-width: 10px;
+}
+
+
+.fileListToolSpan {
+    white-space: nowrap;
+}
+
+.fileListToolGroup {
+    margin: 0 0 0 20px;
+}
+
+.fileListTransferStatistics {
+    font-family: Arial;
+    font-size: 18px;
+    margin: 0 0 0 10px;
+    color: #004276;
+}
+
+.fileListFileOptions {
+    float: right;
+    margin: 0 10px 0 0;
+}
