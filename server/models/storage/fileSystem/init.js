@@ -5,12 +5,16 @@
 "use strict";
 
 function execute(executeQueryHandler, executeFileQueryHandler){
-    executeQueryHandler('CREATE SCHEMA IF NOT EXISTS "fileSystem"');
     executeFileQueryHandler(__dirname + '/addFile.sql');
     executeFileQueryHandler(__dirname + '/dropContainerNode.sql');
 }
 
+function init(executeQueryHandler, executeFileQueryHandler){
+    executeQueryHandler('CREATE SCHEMA IF NOT EXISTS "fileSystem"');
+}
+
 
 module.exports = {
-    exec: execute
+    exec: execute,
+    init: init
 };

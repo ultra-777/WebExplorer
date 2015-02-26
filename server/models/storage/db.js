@@ -24,14 +24,15 @@ function initSequelize(uri){
 
     //console.log('-- sequelize init started');
     var currentFileName = __filename;
+    var initTasks = [];
     var configuration = [];
     config.getGlobbedFiles(__dirname + '/**/*.js').forEach(function(item) {
         var resolvedPath = path.resolve(item);
         if (currentFileName !== resolvedPath){
             var reference = require(resolvedPath);
-            if ((reference !== undefined) && (reference !== null)){
+            if (reference){
                 var model = reference.model;
-                if ((model !== undefined) && (model !== null)) {
+                if (model) {
                     var schemaObject = model(_sequelize, Sequelize);
                     //schemaObject.name = schemaObject
                     if ((schemaObject.options) && (schemaObject.options.schema))
@@ -39,8 +40,14 @@ function initSequelize(uri){
                     //console.log('-- model: ' + resolvedPath);
                 }
 
+                var init = reference.init;
+                if (init) {
+                    initTasks.push(init)
+                    //console.log('-- init: ' + resolvedPath);
+                }
+
                 var config = reference.config;
-                if ((config !== undefined) && (config !== null)) {
+                if (config) {
                     configuration.push(config)
                     //console.log('-- config: ' + resolvedPath);
                 }
@@ -48,6 +55,14 @@ function initSequelize(uri){
             }
         }
     });
+
+    var initCount = initTasks.length;
+    for (var i = 0; i < initCount; i++){
+        var init = initTasks[i];
+        if (init){
+            init(executeQuery, executeFileQuery);
+        }
+    }
 
 
     var configCount = configuration.length;
@@ -71,10 +86,10 @@ function initSequelizeAndSynq(uri){
             var resolvedPath = path.resolve(item);
             if (currentFileName !== resolvedPath) {
                 var reference = require(resolvedPath);
-                if ((reference !== undefined) && (reference !== null)) {
+                if (reference) {
 
                     var exec = reference.exec;
-                    if ((exec !== undefined) && (exec !== null)) {
+                    if (exec) {
                         execute.push(exec)
                         //console.log('-- exec: ' + resolvedPath);
                     }
@@ -84,7 +99,7 @@ function initSequelizeAndSynq(uri){
         var execCount = execute.length;
         for (var i = 0; i < execCount; i++){
             var exec = execute[i];
-            if ((exec !== undefined) && (exec !== null)){
+            if (exec){
                 exec(executeQuery, executeFileQuery);
             }
         }

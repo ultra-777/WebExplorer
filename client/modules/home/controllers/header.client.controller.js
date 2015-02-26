@@ -1,11 +1,12 @@
 'use strict';
 
-angular.module('home').controller('HeaderController', ['$scope', '$timeout', 'Authentication', 'Menus',
-	function(scope, timeout, Authentication, Menus) {
+angular.module('home').controller('HeaderController', ['$scope', '$timeout', 'dataService', 'Authentication', 'Menus',
+	function(scope, timeout, dataService, Authentication, Menus) {
         scope.currentTime = null;
 		scope.authentication = Authentication;
 		scope.isCollapsed = false;
 		scope.menu = Menus.getMenu('topbar');
+
 
 		scope.toggleCollapsibleMenu = function() {
 			scope.isCollapsed = !scope.isCollapsed;
@@ -16,13 +17,20 @@ angular.module('home').controller('HeaderController', ['$scope', '$timeout', 'Au
 			scope.isCollapsed = false;
 		});
 
-        function showTime() {
-            scope.currentTime = new Date();
-            timeout(showTime, 1000);
-        }
+        function getUserInfo() {
+            dataService
+                .getUserInfo()
+                    .then(function(data) {
+                        if (data.ip)
+                            data.ip = data.ip.replace('::ffff:', '');
+                        scope.userInfo = data;
+                    },
+                    function (error) {
+                        console.log(error);
+                    });
+        };
 
-        showTime();
-
+        getUserInfo();
     }
 
 
