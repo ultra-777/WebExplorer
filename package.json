@@ -7,6 +7,9 @@
 		"node": "0.10.x",
 		"npm": "1.4.x"
 	},
+    "config": {
+      "unsafe-perm": true
+    },
 	"scripts": {
 		"start": "grunt",
 		"postinstall": "bower install --allow-root"
