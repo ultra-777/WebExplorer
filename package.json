@@ -9,7 +9,7 @@
 	},
 	"scripts": {
 		"start": "grunt",
-		"postinstall": "bower install"
+		"postinstall": "bower install --allow-root"
 	},
 	"dependencies": {
         "grunt-contrib-watch": "~0.6.1",
