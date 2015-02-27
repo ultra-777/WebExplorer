@@ -203,13 +203,15 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
                     var dd = new Date();
                     var currentTime = dd.getTime();
                     var interval = currentTime - lastTime;
-                    lastTime = currentTime;
                     var transferred = (event.lengthComputable ? event.loaded : 0);
                     var transferredBytes = transferred - lastTransferred;
                     lastTransferred = transferred;
-                    scope.transferRate = transferredBytes * 1000 / interval;
-                    scope.transferDuration = Math.floor((currentTime - startTime) / 1000);
-                    scope.$digest();
+                    if (interval >= (1000)) {
+                        lastTime = currentTime;
+                        scope.transferRate = transferredBytes * 1000 / interval;
+                        scope.transferDuration = Math.floor((currentTime - startTime) / 1000);
+                        scope.$digest();
+                    }
                 };
 
                 scope.currentUploader.onload = function() {
@@ -221,15 +223,15 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
                     var fileInfo = JSON.parse(scope.currentUploader.response);
                     addNewFile(fileInfo);
 
-                    scope.currentUploader = null;
-                    scope.isUploading = false;
-
                     messageBox.show(
                         'Transfer complete',
                         'Size: ' + filter('bytes')(fileInfo.Size, 1)  + '<br/>' +
                         'Duration: ' + secondsLeft + ' sec.' + '<br/>' +
                         'Rate: ' + filter('bytes')((fileInfo.Size / secondsLeft), 1) + ' / sec'
                     );
+
+                    scope.currentUploader = null;
+                    scope.isUploading = false;
                 };
 
                 scope.currentUploader.onerror = function(error) {
