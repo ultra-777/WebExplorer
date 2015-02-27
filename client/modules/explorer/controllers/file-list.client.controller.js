@@ -30,7 +30,7 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
 
         scope.uploadByChunks = function () {
             var modalInstance = modal.open({
-                templateUrl: 'modules/explorer/views/upload-file-view.client.view.html',
+                templateUrl: 'modules/explorer/views/upload-file.client.view.html',
                 controller: 'UploadFileController',
                 resolve: {
                     children: function () {
@@ -163,7 +163,7 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
 
         scope.uploadFast = function (){
             var modalInstance = modal.open({
-                templateUrl: 'modules/explorer/views/upload-file-view.client.view.html',
+                templateUrl: 'modules/explorer/views/upload-file.client.view.html',
                 controller: 'UploadFileController',
                 resolve: {
                     children: function () {
@@ -316,11 +316,6 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
             newFile.select();
         }
 
-        var interruptLoading = function(){
-            scope.currentBlob = null;
-            scope.$digest();
-        };
-
         var onHandleNodeIdChange = function(newValue, oldValue){
             if (newValue){
                 getFolder(newValue)
@@ -378,6 +373,57 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
             );
         };
 
+        var renameFile = function (id, handler) {
+
+            var modalInstance = modal.open({
+                templateUrl: 'modules/explorer/views/rename.client.view.html',
+                controller: 'renameController',
+                resolve: {
+                    currentName: function () {
+                        var currentName = null;
+                        enumerateArray(scope.files, function(file, index){
+                            if (file.id == id)
+                                currentName = file.name;
+                        });
+                        return currentName;
+                    },
+                    target: function(){
+                        return 'file';
+                    },
+                    neighbours: function () {
+                        return scope.files;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function (newFileName) {
+                scope.isAsynqOperation = true;
+                dataService.rename(id, newFileName)
+                    .then(function(data) {
+                        scope.isAsynqOperation = false;
+                        if (data) {
+                            var targetFile = null;
+                            enumerateArray(scope.files, function(file, index){
+                                if (file.id == id)
+                                    targetFile = file;
+                            });
+
+                            if (targetFile)
+                                targetFile.name = newFileName;
+                        }
+                    },
+                    function (error) {
+                        scope.isNavigating = false;
+                        messageBox.show(
+                            'Deleting file exception',
+                            error
+                        );
+                    }
+                );
+            }, function(reason){
+            });
+        };
+
         var enumerateArray = function(array, handler/*void function(child, index)*/){
             if (array){
                 var length = array.length;
@@ -428,6 +474,9 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
                 },
                 delete: function () {
                     deleteFile(this.id);
+                },
+                rename: function () {
+                    renameFile(this.id);
                 }
             };
         }

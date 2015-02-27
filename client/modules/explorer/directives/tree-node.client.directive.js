@@ -11,7 +11,7 @@ angular.module('explorer').directive('treeNode', ['$compile', '$parse', 'recursi
             },
             restrict: 'EA',
 
-            templateUrl: 'modules/explorer/views/tree-node-view.client.view.html',
+            templateUrl: 'modules/explorer/views/tree-node.client.view.html',
             replace: true,
             controller: 'TreeNodeController',
             transclude: true,

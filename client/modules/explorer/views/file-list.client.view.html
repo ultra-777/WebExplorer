@@ -62,6 +62,15 @@
                                 src="modules/explorer/img/download.png"/>
                         </a>
                         <a
+                            title="Rename"
+                            class="fileListCommandRef"
+                            ng-click="file.rename()"
+                            ng-show="file.isSelected">
+                            <img
+                                class="fileListMenuImage"
+                                src="modules/explorer/img/rename.png"/>
+                        </a>
+                        <a
                             title="Delete"
                             class="fileListCommandRef"
                             ng-click="file.delete()"

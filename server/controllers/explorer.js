@@ -20,9 +20,6 @@ process.on('message', function(msg){
     }
 });
 
-
-
-
 exports.folder = function(req, res, next) {
 
     checkAuthorization(req, res, function(){
@@ -82,6 +79,24 @@ exports.delete = function(req, res, next) {
                 res.send(500, error);
             else{
                 instance.dropNode(req.body.id, function(result, error){
+                    if (error)
+                        res.send(500, error);
+                    else{
+                        res.jsonp(result);
+                    }
+                });
+            }
+        })
+    });
+};
+
+exports.rename = function(req, res, next) {
+    checkAuthorization(req, res, function(){
+        treeImpl.getInstance(null, req.user, function(instance, error){
+            if (error)
+                res.send(500, error);
+            else{
+                instance.rename(req.body.id, req.body.newName, function(result, error){
                     if (error)
                         res.send(500, error);
                     else{

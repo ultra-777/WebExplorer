@@ -77,5 +77,9 @@ angular.module('explorer').service('DataService', ['$http', '$q', '$location',
             return this.httpRequest('POST', '/ReleaseBlob', { 'blobId': blobId });
         };
 
+        this.rename = function (nodeId, newName) {
+            return this.httpRequest('POST', '/Rename', { 'id': nodeId, newName: newName });
+        };
+
     }
 ]);

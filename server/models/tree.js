@@ -174,6 +174,15 @@ getInstance = function(id, user, callback/*function(instance, error)*/){
                     callback && callback(succeeded, error);
                 });
         };
+
+        this.rename = function(nodeId, newName, callback/*function(succeeded, error)*/){
+
+            var nodeSchema = db.getObject('node', 'fileSystem');
+            nodeSchema
+                .rename(nodeId, newName, function(succeeded, error){
+                    callback && callback(succeeded, error);
+                });
+        };
     };
 
 

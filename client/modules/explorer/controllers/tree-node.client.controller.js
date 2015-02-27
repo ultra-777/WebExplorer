@@ -97,10 +97,70 @@ angular.module('explorer')
             return scope.parent ? true : false;
         };
 
+        scope.rename = function(operationTitle, target) {
+            if (!operationTitle)
+                operationTitle = 'rename';
+            if (!target)
+                target = 'node';
+            if (!scope.canRename()){
+                messageBox.show(
+                    operationTitle,
+                    'The root node cannot be renamed' + (scope.data ? (': ' + scope.data.name) : '')
+                );
+                return;
+            }
+
+            var modalInstance = modal.open({
+                templateUrl: 'modules/explorer/views/rename.client.view.html',
+                controller: 'renameController',
+                resolve: {
+                    currentName: function () {
+                        return scope.data.name;
+                    },
+                    target: function(){
+                        return target;
+                    },
+                    neighbours: function () {
+                        var neighbours = [];
+                        var currentName = null;
+                        enumerateArray(scope.parent.children, function(neighbour, index){
+                            neighbours.push({name: neighbour.data.name});
+                        });
+                        return neighbours;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function (newName) {
+                scope.isAsynqOperation = true;
+                dataService.rename(scope.data.id, newName)
+                    .then(function(result) {
+                        scope.isAsynqOperation = false;
+                        if (result) {
+                            scope.data.name = newName;
+                            scope.parent.dataChildren.sort(compareChildren);
+                        }
+                    },
+                    function (error) {
+                        scope.isNavigating = false;
+                        messageBox.show(
+                            'Deleting ' + target + ' exception',
+                            error
+                        );
+                    }
+                );
+            }, function(reason){
+            });
+        };
+
+        scope.canRename = function(){
+            return scope.parent ? true : false;
+        };
+
         scope.newNode = function() {
 
             var modalInstance = modal.open({
-                templateUrl: 'modules/explorer/views/new-folder-view.client.view.html',
+                templateUrl: 'modules/explorer/views/new-folder.client.view.html',
                 controller: 'NewFolderController',
                 resolve: {
                     children: function() {
@@ -139,7 +199,7 @@ angular.module('explorer')
             node.isSelected = (node.data.id == id);
 
             if (recursive || !node.parent){
-                enumerateArray(node.children, function(child){
+                enumerateArray(node.children, function(child, index){
                     applySelection(id, child, true);
                 });
                 if (!node.parent){
@@ -219,14 +279,12 @@ angular.module('explorer')
             }
         }
 
-        var enumerateArray = function(array, handler/*void function(child)*/){
+        var enumerateArray = function(array, handler/*void function(child, index)*/){
             if (array){
-
-                var index = -1;
                 var length = array.length;
                 for (var i = 0; i < length; i++) {
                     var child = array[i];
-                    handler && handler(child);
+                    handler && handler(child, i);
                 }
             }
         }

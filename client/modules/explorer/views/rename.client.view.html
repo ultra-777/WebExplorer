@@ -1,0 +1,14 @@
+<form>
+    <fieldset>
+    <div class="modal-header">
+        <h3>Rename {{current.target}}</h3>
+    </div>
+    <div class="modal-body">
+        <input type="text" ng-model="current.name" autofocus style="width: 100%" />
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="submit" ng-click="ok()" ng-if="current.name && current.nameChanged">OK</button>
+        <button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+    </div>
+    </fieldset>
+</form>

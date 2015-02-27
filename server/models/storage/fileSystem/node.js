@@ -179,6 +179,59 @@ function model(sequelize, DataTypes) {
                             .catch(function (err) {
                                 callback && callback(null, err);
                             });
+                    },
+
+                    rename: function(
+                        nodeId,
+                        newName,
+                        callback/*function(succeeded, error)*/
+                    ){
+                        var nodeSchema = sequelize.model('fileSystem.node');
+
+                        sequelize
+                            .transaction({
+                                autocommit: 'off',
+                                isolationLevel: 'REPEATABLE READ'})
+                            .then(function (t) {
+                                nodeSchema.get(
+                                    Number(nodeId),
+                                    t,
+                                    function(nodeInstance, err){
+                                        if (err){
+                                            if (t)
+                                                t.rollback();
+                                            callback && callback(false, err);
+                                        }
+                                        else{
+                                            if (nodeInstance) {
+                                                nodeInstance.name = newName;
+                                                nodeInstance
+                                                    .save({transaction: t})
+                                                    .then(function (affectedRows) {
+                                                        t
+                                                            .commit()
+                                                            .then(function(){
+                                                                callback && callback(nodeInstance, null);
+                                                            })
+                                                            .catch(function (err) {
+                                                                callback && callback(null, err);
+                                                            });
+
+                                                    })
+                                                    .catch(function (err) {
+                                                        t.rollback();
+                                                        callback && callback(null, err);
+                                                    });
+                                            }
+                                            else
+                                                callback && callback(null, null);
+                                        }
+                                    }
+                                )
+                            })
+                            .catch(function (err) {
+                                callback && callback(null, err);
+                            });
                     }
                 }
             }

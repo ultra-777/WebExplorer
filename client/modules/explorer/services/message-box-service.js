@@ -26,7 +26,7 @@ angular.module('explorer').service('messageBoxService', ['$modal',
             ];
 
             var modalInstance = modal.open({
-                templateUrl: 'modules/explorer/views/message-box-view.html',
+                templateUrl: 'modules/explorer/views/message-box.html',
                 controller: 'MessageBoxController',
                 windowClass: 'css-center-modal',
                 resolve: {

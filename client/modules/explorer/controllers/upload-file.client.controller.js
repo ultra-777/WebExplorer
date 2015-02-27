@@ -27,7 +27,7 @@ angular.module('explorer').controller('UploadFileController', ['$scope', '$modal
 
   		scope.checkName = function (candidate) {
 			var result = true;
-            if (children !== null) {
+            if (children) {
                 var length = children.length;
                 for (var i = 0; i < length; i++) {
                     var child = children[i];
