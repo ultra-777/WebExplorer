@@ -9,10 +9,11 @@ var ApplicationConfiguration = (function() {
 		'ngCookies',  
 		'ngAnimate',  
 		'ngTouch',  
-		'ngSanitize',  
-		'ui.router',
+		'ngSanitize',
+        'ui.router',
 		'ui.bootstrap',
-		'ui.utils'];
+		'ui.utils',
+        'ngGrid'];
 
 	// Add a new vertical module
 	var registerModule = function(moduleName) {

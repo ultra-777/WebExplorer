@@ -1,7 +1,7 @@
 <section data-ng-controller="explorerController">
      <div autoresize data-resize-offset="30">
         <splitter orientation="horizontal">
-            <splitter-pane min-size="30" default-size="200">
+            <splitter-pane min-size="30" default-size="200" is-scrollable="true">
                 <div>
                     <data-tree-node data-folder-info="driveInfo" data-on-selection-changed="onSelectedFolderChanged(id)"></data-tree-node>
                 </div>

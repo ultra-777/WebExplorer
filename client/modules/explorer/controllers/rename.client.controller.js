@@ -2,7 +2,8 @@
 
 angular.
     module('explorer')
-        .controller('renameController', [
+    .controller(
+        'renameController', [
             '$scope',
             '$modalInstance',
             'messageBoxService',

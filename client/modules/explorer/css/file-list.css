@@ -89,5 +89,77 @@ hr.fileListSeparatorLine {
 
 .fileListFileOptions {
     float: right;
-    margin: 0 10px 0 0;
+    margin: 0 15px 0 0;
 }
+
+.fileListGridStyle {
+    overflow: hidden;
+    border: 0px;
+
+    /*
+    border: 1px solid rgb(212,212,212);
+    width: 400px;
+    height: 300px
+    */
+}
+
+/**/
+.fileListGridStyle > .ngViewport.ng-scope{
+    width: 100% !important;
+    overflow-x: hidden  !important;
+}
+.fileListGridStyle > .ngCanvas, .ngViewport, .ngRow, .ngFooterPanel, .ngTopPanel   {
+    width: 100% !important;
+}
+.fileListGridStyle > .ngRow {
+    border-bottom:none !important;
+}
+
+.fileListCellEdit{
+    max-width: 100px;
+    padding: 0;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    white-space: nowrap;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+/*
+.ngViewport.ng-scope {
+    height: auto !important;
+    overflow-y: hidden;
+}
+
+.ngTopPanel.ng-scope, .ngHeaderContainer {
+    width: auto !important;
+}
+*/
+
+/*
+.uiGridViewport{
+    height: auto !important;
+    overflow: hidden;
+}
+
+.ngCell  {
+    display : table-cell;
+    height: auto !important;
+    overflow:visible;
+    position: static;
+}
+
+.ngRow {
+    display : table-row;
+    height: auto !important;
+    position: static;
+}
+
+.ngCellText{
+    height: auto !important;
+    white-space: normal;
+    overflow:visible;
+}
+*/

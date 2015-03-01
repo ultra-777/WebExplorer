@@ -1,6 +1,12 @@
 'use strict';
 
-angular.module('home').service('dataService', ['$http', '$q', '$location',
+angular
+    .module('home')
+    .service(
+        'homeDataService', [
+            '$http',
+            '$q',
+            '$location',
 	function(http , q, location) {
 
         var serverController = '/home';

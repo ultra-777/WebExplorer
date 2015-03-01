@@ -1,4 +1,59 @@
-<div>
+<div size-keeper>
+<splitter orientation="vertical" is-fixed="true">
+    <splitter-pane default-size="45" is-scrollable="false">
+        <span class="fileListToolSpan">
+            <span class="fileListToolGroup" data-ng-show="!isUploading">
+            <a
+                    title="Upload by chunks"
+                    class="fileListCommandRef"
+                    ng-click="uploadByChunks()">
+                <img
+                        class="fileListCommandImage"
+                        src="modules/explorer/img/upload-by-chunks.png"/>
+            </a>
+            <a
+                    title="Upload fast"
+                    class="fileListCommandRef"
+                    ng-click="uploadFast()">
+                <img
+                        class="fileListCommandImage"
+                        src="modules/explorer/img/upload-fast.png"/>
+            </a>
+        </span>
+            <span class="fileListToolGroup" data-ng-show="isUploading">
+            <a
+                    title="Stop uploading"
+                    class="fileListCommandRef"
+                    ng-click="stopUploading()">
+                <img
+                        class="fileListCommandImage"
+                        src="modules/explorer/img/stop.png"/>
+            </a>
+             <span class="fileListTransferStatistics">
+                 {{percent | percentage : 2}}
+             </span>
+            <span class="fileListTransferStatistics">
+                {{transferRate | bytes }} /sec
+            </span>
+            <span class="fileListTransferStatistics">
+                {{transferDuration | duration}}
+            </span>
+        </span>
+        </span>
+        <hr class="fileListSeparatorLine"/>
+    </splitter-pane>
+    <splitter-pane is-scrollable="true">
+        <div  size-keeper class="fileListGridStyle" ng-grid="gridOptions"></div>
+    </splitter-pane>
+
+
+
+<!--
+<div size-keeper>
+<div size-keeper class="fileListGridStyle" ng-grid="gridOptions"></div>
+-->
+<!--
+<div size-keeper>
     <span class="fileListToolSpan">
         <span class="fileListToolGroup" data-ng-show="!isUploading">
             <a
@@ -39,7 +94,7 @@
         </span>
     </span>
     <hr class="fileListSeparatorLine"/>
-    <table class="fileListTable">
+      <table class="fileListTable">
         <tr ng-repeat="file in files" >
             <td class="fileListSpaceCell"/>
             <td class="fileListTitleCell">
@@ -85,5 +140,8 @@
             <td class="fileListSpaceCell"/>
         </tr>
     </table>
+    <div class="gridStyle" ng-grid="gridOptions"></div>
 </div>
-
+-->
+</splitter>
+</div>

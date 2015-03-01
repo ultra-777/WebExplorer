@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('explorer').directive('autoresize', function ($window) {
+angular
+    .module('explorer')
+    .directive(
+        'autoresize',
+    function ($window) {
     return function (scope, element, attrs) {
         var w = angular.element($window);
 

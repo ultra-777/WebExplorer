@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('home').controller('HeaderController', ['$scope', '$timeout', 'dataService', 'Authentication', 'Menus',
+angular.module('home').controller('HeaderController', ['$scope', '$timeout', 'homeDataService', 'Authentication', 'Menus',
 	function(scope, timeout, dataService, Authentication, Menus) {
         scope.currentTime = null;
 		scope.authentication = Authentication;

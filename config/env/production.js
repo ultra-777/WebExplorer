@@ -13,17 +13,19 @@ module.exports = {
 			css: [
 				'client/lib/bootstrap/dist/css/bootstrap.min.css',
 				'client/lib/bootstrap/dist/css/bootstrap-theme.min.css',
+                'client/lib/angular-grid/ng-grid.min.css'
 			],
 			js: [
                 'client/lib/jquery/dist/jquery.min.js',
 				'client/lib/angular/angular.min.js',
-				'client/lib/angular-resource/angular-resource.js',
-				'client/lib/angular-cookies/angular-cookies.js',
-				'client/lib/angular-animate/angular-animate.js',
-				'client/lib/angular-touch/angular-touch.js',
-				'client/lib/angular-sanitize/angular-sanitize.js',
+				'client/lib/angular-resource/angular-resource.min.js',
+				'client/lib/angular-cookies/angular-cookies.min.js',
+				'client/lib/angular-animate/angular-animate.min.js',
+				'client/lib/angular-touch/angular-touch.min.js',
+				'client/lib/angular-sanitize/angular-sanitize.min.js',
 				'client/lib/angular-ui-router/release/angular-ui-router.min.js',
 				'client/lib/angular-ui-utils/ui-utils.min.js',
+                'client/lib/angular-grid/build/ng-grid.min.js',
 				'client/lib/angular-bootstrap/ui-bootstrap-tpls.min.js'
 			]
 		},

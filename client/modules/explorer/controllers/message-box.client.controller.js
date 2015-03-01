@@ -1,6 +1,12 @@
 'use strict';
 
-angular.module('explorer').controller('MessageBoxController', ['$scope', '$modalInstance', 'model',
+angular
+    .module('explorer')
+    .controller(
+        'MessageBoxController', [
+            '$scope',
+            '$modalInstance',
+            'model',
     function(scope, modalInstance, model) {
 
         scope.dialogOptions = model;

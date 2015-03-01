@@ -1,0 +1,28 @@
+
+
+
+<div>
+    <!--<input ng-class="'fileListCellEdit colt' + col.index" ng-input="COL_FIELD" ng-model="COL_FIELD" />-->
+    <div class="ngCellText" ng-show="!row.entity.edit">
+        {{row.getProperty(col.field)}}
+    </div>
+    <!--
+    <input
+            ng-class="'fileListCellEdit colt' + col.index"
+            ng-input="COL_FIELD"
+            ng-model="COL_FIELD"
+            ng-show="row.entity.edit"
+            ng-blur="updateEntity(row)"
+            show-focus="row.entity.edit"/>
+    -->
+    <div class="fileListCellEdit" ng-show="row.entity.edit">
+        <input
+            ng-class="'colt' + col.index"
+            cell-input="COL_FIELD"
+            ng-model="COL_FIELD"
+            ng-show="row.entity.edit"
+            ng-blur="updateEntity(row)"
+            show-focus="row.entity.edit"/>
+    </div>
+
+</div>

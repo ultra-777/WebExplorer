@@ -1,13 +1,9 @@
 'use strict';
 
-angular.module('explorer').service('DataService', ['$http', '$q', '$location',
+angular.module('explorer').service('explorerDataService', ['$http', '$q', '$location',
 	function(http , q, location) {
-		// Dataservice service logic
-		// ...
 
         var serverController = '/explorer';
-
-
 
 	    this.httpRequest = function (method, url, data) {
             var defer = q.defer();

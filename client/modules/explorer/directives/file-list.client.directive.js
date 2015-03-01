@@ -9,7 +9,7 @@ angular.module('explorer').directive('fileList', [
             },
             restrict: 'EA',
 
-            templateUrl: 'modules/explorer/views/file-list.client.view.html',
+            templateUrl: 'modules/explorer/views/file-list/view.html',
             replace: true,
             controller: 'fileListController',
             transclude: true,

@@ -1,6 +1,13 @@
 'use strict';
 
-angular.module('explorer').controller('UploadFileController', ['$scope', '$modalInstance', 'messageBoxService', 'children',
+angular
+    .module('explorer')
+    .controller(
+        'UploadFileController', [
+            '$scope',
+            '$modalInstance',
+            'messageBoxService',
+            'children',
 	function(scope, modalInstance, messageBox, children) {
 
 		scope.current = {

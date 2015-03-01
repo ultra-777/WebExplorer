@@ -1,7 +1,13 @@
 'use strict';
 
-angular.module('explorer')
-    .controller('TreeNodeController', ['$scope', 'DataService', '$modal', 'messageBoxService',
+angular
+    .module('explorer')
+    .controller(
+        'TreeNodeController', [
+            '$scope',
+            'explorerDataService',
+            '$modal',
+            'messageBoxService',
     function(scope, dataService, modal, messageBox) {
         scope.parent = null;
         scope.isAsynqOperation = false;

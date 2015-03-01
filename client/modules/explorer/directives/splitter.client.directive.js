@@ -54,7 +54,8 @@ angular.module('explorer')
             transclude: true,
             scope: {
                 orientation: '@',
-                handlerSize: '@'
+                handlerSize: '@',
+                isFixed: '='
             },
             template: function(element){
                 var orientation = element.attr('orientation');
@@ -73,41 +74,45 @@ angular.module('explorer')
             link: function(scope, element, attrs) {
                 var vertical = scope.orientation == 'vertical';
                 var extraSize = null;
-                var handlerSize = scope.handlerSize;
-                if (handlerSize) {
-                    handlerSize = parseInt(handlerSize);
-                    extraSize = handlerSize;
-                }
-                else {
-                    var style =
-                        findStyle(
-                            vertical ?
-                                '.split-panes.vertical > .split-handler'
-                                : '.split-panes.horizontal > .split-handler');
-                    if (style) {
-                        handlerSize =
-                            parseInt(
-                                vertical ?
-                                    style.height
-                                    : style.width);
+                var handlerSize = 0;
+                var handler = null;
+                if (!scope.isFixed) {
+                    handlerSize = scope.handlerSize;
+                    if (handlerSize) {
+                        handlerSize = parseInt(handlerSize);
+                        extraSize = handlerSize;
                     }
+                    else {
+                        var style =
+                            findStyle(
+                                vertical ?
+                                    '.split-panes.vertical > .split-handler'
+                                    : '.split-panes.horizontal > .split-handler');
+                        if (style) {
+                            handlerSize =
+                                parseInt(
+                                    vertical ?
+                                        style.height
+                                        : style.width);
+                        }
+                    }
+                    if (!handlerSize)
+                        handlerSize = 5;
+                    handler =
+                        vertical ?
+                            angular.element(
+                                '<tr class="split-handler"' +
+                                (extraSize ? (' style="height: ' + extraSize + 'px;"') : '') +
+                                '>' +
+                                handlerContent +
+                                '<td/></tr>')
+                            : angular.element(
+                                '<td class="split-handler"' +
+                                (extraSize ? (' style="width: ' + extraSize + 'px;"') : '') +
+                                '>' +
+                                handlerContent +
+                                '</td>');
                 }
-                if (!handlerSize)
-                    handlerSize = 5;
-                var handler =
-                    vertical ?
-                        angular.element(
-                            '<tr class="split-handler"' +
-                            (extraSize ? (' style="height: ' + extraSize + 'px;"') : '') +
-                            '>' +
-                            handlerContent +
-                            '<td/></tr>')
-                        : angular.element(
-                            '<td class="split-handler"' +
-                            (extraSize ? (' style="width: ' + extraSize + 'px;"') : '') +
-                            '>' +
-                            handlerContent +
-                            '</td>');
 
                 var pane1 = scope.panes[0];
                 var pane2 = scope.panes[1];
@@ -119,7 +124,8 @@ angular.module('explorer')
 
                 var drag = false;
 
-                pane1.elem.after(handler);
+                if (handler)
+                    pane1.elem.after(handler);
 
                 var div1 = pane1.elem.find('div:first');
                 var div2 = pane2.elem.find('div:first');
@@ -148,6 +154,7 @@ angular.module('explorer')
                         pane1.elem.css('height', pos + 'px');
                         div2.css('height', pane2Height + 'px');
                         pane2.elem.css('height', pane2Height + 'px');
+                        //console.log('vertical(' + height + '): ' + pos + ' x ' + pane2Height);
 
                     } else {
 
@@ -166,36 +173,40 @@ angular.module('explorer')
                         div1.css('width', pos + 'px');
                         pane2.elem.css('width', pane2Width + 'px');
                         div2.css('width', pane2Width + 'px');
+                        //console.log('horizontal(' + width + '): ' + pos + ' x ' + pane2Width);
                     }
                     div1.toggle().toggle();
                     div2.toggle().toggle();
                 });
 
-                handler.bind('mousedown', function (ev) {
+                if (handler) {
+                    handler.bind('mousedown', function (ev) {
 
-                    var bounds = element[0].getBoundingClientRect();
-                    if (vertical) {
+                        var bounds = element[0].getBoundingClientRect();
+                        if (vertical) {
 
-                        var height = bounds.bottom - bounds.top;
-                        var pos = ev.clientY - bounds.top;
-                        var pane1Height = parseInt(pane1.elem.css('height'));
-                        if (pane1Height < pos)
-                            handlerOffset = pos - pane1Height;
-                    }
-                    else{
-                        var width = bounds.right - bounds.left;
-                        var pos = ev.clientX - bounds.left;
-                        var pane1Width = parseInt(pane1.elem.css('width'));
-                        if (pane1Width < pos)
-                            handlerOffset = pos - pane1Width;
-                    }
-                    console.log('handlerOffset: ' + handlerOffset);
-                    ev.preventDefault();
-                    drag = true;
-                });
+                            var height = bounds.bottom - bounds.top;
+                            var pos = ev.clientY - bounds.top;
+                            var pane1Height = parseInt(pane1.elem.css('height'));
+                            if (pane1Height < pos)
+                                handlerOffset = pos - pane1Height;
+                        }
+                        else {
+                            var width = bounds.right - bounds.left;
+                            var pos = ev.clientX - bounds.left;
+                            var pane1Width = parseInt(pane1.elem.css('width'));
+                            if (pane1Width < pos)
+                                handlerOffset = pos - pane1Width;
+                        }
+
+                        ev.preventDefault();
+                        drag = true;
+                    });
+                }
 
                 angular.element(document).bind('mouseup', function (ev) {
                     drag = false;
+                    $(window).trigger('resize');
                 });
 
                 var owners = $(element).parent(); //.not("[class^='split']");
@@ -282,16 +293,21 @@ angular.module('explorer')
         };
     })
     .directive('splitterPane', function () {
-        var getTemplate = function(orientation){
+        var getTemplate = function(orientation, scrollability){
             var isVertical = (orientation === 'vertical');
+            var isScrollable = (scrollability === 'true');
             var template = '';
 
             switch(orientation){
                 case 'vertical':
-                    template = '<tr><td><div class="split-pane{{index}}" ng-transclude style="height: 100%; overflow:auto;"/></td></tr>';
+                    template = '<tr><td><div class="split-pane{{index}}" ng-transclude style="height: 100%; overflow: ' +
+                    (isScrollable ? 'auto' : 'hidden') +
+                    ';"/></td></tr>';
                     break;
                 case 'horizontal':
-                    template = '<td><div  class="split-pane{{index}}" ng-transclude style="height: 100%; overflow:auto;"/>';
+                    template = '<td><div  class="split-pane{{index}}" ng-transclude style="height: 100%; overflow: ' +
+                    (isScrollable ? 'auto' : 'hidden') +
+                    ';"/>';
                     break;
                 default:
                     template = '<div ng-transclude></div>';
@@ -307,12 +323,14 @@ angular.module('explorer')
             transclude: true,
             scope: {
                 minSize: '=',
-                defaultSize: '='
+                defaultSize: '=',
+                isScrollable: '='
             },
             template: function(element){
                 var splitter = element.closest('splitter');
                 var orientation = splitter.attr('orientation');
-                return getTemplate(orientation);
+                var isScrollable = element.attr('is-scrollable');
+                return getTemplate(orientation, isScrollable);
             },
             link: function(scope, element, attrs, bgSplitterCtrl) {
                 scope.elem = element;

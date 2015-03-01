@@ -1,8 +1,15 @@
 'use strict';
 
-angular.module('explorer').controller('explorerController', [
-    '$scope', 'DataService', '$modal', '$filter', 'messageBoxService', 'uploadService',
-	function(scope, dataService, modal, filter, messageBox, uploadService) {
+angular
+    .module('explorer')
+    .controller(
+        'explorerController', [
+            '$scope',
+            'explorerDataService',
+            '$modal',
+            '$filter',
+            'messageBoxService',
+	function(scope, dataService, modal, filter, messageBox) {
 
 		scope.currentFolder = null;
 		scope.canBack = false;

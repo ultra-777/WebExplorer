@@ -1,6 +1,14 @@
 'use strict';
 
-angular.module('explorer').controller('fileListController', ['$scope', '$filter', 'DataService', '$modal', 'messageBoxService',
+angular
+    .module('explorer')
+    .controller(
+        'fileListController', [
+            '$scope',
+            '$filter',
+            'explorerDataService',
+            '$modal',
+            'messageBoxService',
 	function(scope, filter, dataService, modal, messageBox) {
 
         scope.files = [];
@@ -11,6 +19,108 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
         scope.currentBlob = null;
         scope.currentUploader = null;
         scope.isUploading = false;
+
+
+
+
+        /*
+         DoubleClick row plugin
+         */
+
+        function pluginGridDoubleClick() {
+            var self = this;
+            self.$scope = null;
+            self.myGrid = null;
+
+            // The init method gets called during the ng-grid directive execution.
+            self.init = function(scope, grid, services) {
+                // The directive passes in the grid scope and the grid object which
+                // we will want to save for manipulation later.
+                self.$scope = scope;
+                self.myGrid = grid;
+                // In this example we want to assign grid events.
+                self.assignEvents();
+            };
+            self.assignEvents = function() {
+                // Here we set the double-click event handler to the header container.
+                self.myGrid.$viewport.on('dblclick', self.onDoubleClick);
+            };
+            // double-click function
+            self.onDoubleClick = function(event) {
+                var lastRow = self.$scope.selectionProvider.lastClickedRow;
+                self.myGrid.config.dblClickFn(lastRow, event);
+            };
+        };
+
+        scope.myDblClickHandler = function(rowItem, event) {
+            //alert(rowItem.name);
+            rowItem.entity.edit = true;
+            //event.target.focus();
+            var q = 0;
+        }
+
+        scope.updateEntity = function(row){
+            row.entity.edit = false;
+        };
+
+        scope.gridSelections = [];
+        scope.gridOptions = {
+            data: 'files',
+            enableColumnResize : true,
+            enableCellSelection: false,
+            enableRowSelection: true,
+            selectedItems: scope.gridSelections,
+            multiSelect: false,
+            enableCellEditOnFocus: true,
+
+            columnDefs: [
+                {
+                    field: 'name',
+                    displayName: 'Name',
+                    width: 250,
+                    resize: true,
+                    enableCellEdit: false/*,
+                    editableCellTemplate: 'modules/explorer/views/file-list/cell-name-editable.html'
+                    ,cellTemplate: 'modules/explorer/views/file-list/cell-name-editable.html'*/
+                },
+                {
+                    field:'size',
+                    displayName:'Size',
+                    width: 100,
+                    resize: true,
+                    enableCellEdit: false,
+                    cellTemplate: 'modules/explorer/views/file-list/cell-size.html'
+                },
+                {
+                    field:'actions',
+                    displayName:'',
+                    resize: true,
+                    enableCellEdit: false,
+                    cellTemplate: 'modules/explorer/views/file-list/cell-actions.html'
+                }
+            ],
+            afterSelectionChange: function (rowItem) {
+                if (rowItem.selected)  {  // I don't know if this is true or just truey
+                    //write code to execute only when selected.
+                    //rowItem.entity is the "data" here
+                    rowItem.entity.select();
+                } else {
+                    //write code on deselection.
+                }
+            },
+            dblClickFn: scope.myDblClickHandler,
+            plugins: [pluginGridDoubleClick]
+
+
+        };
+
+        scope.$on('ngGridEventEndCellEdit', function(event) {
+            var field = event.targetScope.col.field;
+            var file = event.targetScope.row.entity.name;
+            var newData = event.targetScope.row.entity[event.targetScope.col.field];
+            console.log(field + ' x ' + file);
+            // console.log($scope.contact );
+        });
 
         scope.init = function () {
             scope.$watch('nodeId', onHandleNodeIdChange);
@@ -314,6 +424,8 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
             scope.files.push(newFile);
             scope.files.sort(compareChildren);
             newFile.select();
+
+            //scope.gridOptions.selectItem(3, true);
         }
 
         var onHandleNodeIdChange = function(newValue, oldValue){
@@ -435,9 +547,21 @@ angular.module('explorer').controller('fileListController', ['$scope', '$filter'
         }
 
         var applySelection = function (id) {
+            var isChangeRequired = false;
+            var targetFile = null;
             enumerateArray(scope.files, function(file, index){
-                file.isSelected = (file.id == id);
+                var newState = (file.id == id);
+                if (file.isSelected != newState){
+                    file.isSelected = newState;
+                    isChangeRequired = true;
+                }
+                if (file.isSelected)
+                    targetFile = file;
             });
+            if (isChangeRequired && targetFile) {
+                scope.gridSelections.length = 0;
+                scope.gridSelections.push(targetFile);
+            }
         };
 
         var applyScopeFolder = function (newFolder, handler) {
