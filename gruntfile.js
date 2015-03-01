@@ -128,6 +128,7 @@ module.exports = function(grunt) {
 		}
 	});
 
+
 	// Load NPM tasks 
 	require('load-grunt-tasks')(grunt);
 
