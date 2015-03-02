@@ -22,10 +22,6 @@ angular
         scope.currentUploader = null;
         scope.isUploading = false;
 
-        scope.updateEntity = function(row){
-            row.entity.edit = false;
-        };
-
         scope.gridOptions = {
             data: 'files',
             enableColumnResizing: true,
@@ -91,15 +87,6 @@ angular
                         .promise );
           });
         };
-
-
-        scope.$on('ngGridEventEndCellEdit', function(event) {
-            var field = event.targetScope.col.field;
-            var file = event.targetScope.row.entity.name;
-            var newData = event.targetScope.row.entity[event.targetScope.col.field];
-            console.log(field + ' x ' + file);
-            // console.log($scope.contact );
-        });
 
         scope.init = function () {
             scope.$watch('nodeId', onHandleNodeIdChange);
