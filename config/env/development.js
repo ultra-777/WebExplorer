@@ -18,7 +18,7 @@ module.exports = {
             css: [
                 'client/lib/bootstrap/dist/css/bootstrap.css',
                 'client/lib/bootstrap/dist/css/bootstrap-theme.css',
-                'client/lib/angular-grid/ng-grid.css'
+                'client/lib/angular-ui-grid/ui-grid.css'
             ],
             js: [
                 'client/lib/jquery/dist/jquery.js',
@@ -30,7 +30,7 @@ module.exports = {
                 'client/lib/angular-sanitize/angular-sanitize.js',
                 'client/lib/angular-ui-router/release/angular-ui-router.js',
                 'client/lib/angular-ui-utils/ui-utils.js',
-                'client/lib/angular-grid/build/ng-grid.js',
+                'client/lib/angular-ui-grid/ui-grid.js',
                 'client/lib/angular-bootstrap/ui-bootstrap-tpls.js'
             ]
         },

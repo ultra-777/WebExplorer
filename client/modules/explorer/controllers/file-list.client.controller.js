@@ -3,13 +3,15 @@
 angular
     .module('explorer')
     .controller(
-        'fileListController', [
-            '$scope',
-            '$filter',
-            'explorerDataService',
-            '$modal',
-            'messageBoxService',
-	function(scope, filter, dataService, modal, messageBox) {
+    'fileListController', [
+        '$scope',
+        '$filter',
+        '$interval',
+        '$modal',
+        '$q',
+        'explorerDataService',
+        'messageBoxService',
+        function(scope, filter, interval, modal, q, dataService, messageBox) {
 
         scope.files = [];
         scope.isAsynqOperation = false;
@@ -20,99 +22,76 @@ angular
         scope.currentUploader = null;
         scope.isUploading = false;
 
-
-
-
-        /*
-         DoubleClick row plugin
-         */
-
-        function pluginGridDoubleClick() {
-            var self = this;
-            self.$scope = null;
-            self.myGrid = null;
-
-            // The init method gets called during the ng-grid directive execution.
-            self.init = function(scope, grid, services) {
-                // The directive passes in the grid scope and the grid object which
-                // we will want to save for manipulation later.
-                self.$scope = scope;
-                self.myGrid = grid;
-                // In this example we want to assign grid events.
-                self.assignEvents();
-            };
-            self.assignEvents = function() {
-                // Here we set the double-click event handler to the header container.
-                self.myGrid.$viewport.on('dblclick', self.onDoubleClick);
-            };
-            // double-click function
-            self.onDoubleClick = function(event) {
-                var lastRow = self.$scope.selectionProvider.lastClickedRow;
-                self.myGrid.config.dblClickFn(lastRow, event);
-            };
-        };
-
-        scope.myDblClickHandler = function(rowItem, event) {
-            //alert(rowItem.name);
-            rowItem.entity.edit = true;
-            //event.target.focus();
-            var q = 0;
-        }
-
         scope.updateEntity = function(row){
             row.entity.edit = false;
         };
 
-        scope.gridSelections = [];
         scope.gridOptions = {
             data: 'files',
-            enableColumnResize : true,
+            enableColumnResizing: true,
             enableCellSelection: false,
             enableRowSelection: true,
-            selectedItems: scope.gridSelections,
             multiSelect: false,
             enableCellEditOnFocus: true,
+            noUnselect: true,
+            enableRowHeaderSelection: false,
 
             columnDefs: [
                 {
                     field: 'name',
                     displayName: 'Name',
-                    width: 250,
-                    resize: true,
-                    enableCellEdit: false/*,
-                    editableCellTemplate: 'modules/explorer/views/file-list/cell-name-editable.html'
-                    ,cellTemplate: 'modules/explorer/views/file-list/cell-name-editable.html'*/
+                    enableColumnResizing: true,
+                    enableSorting: true,
+                    enableCellEdit: true,
+                    enableCellEditOnFocus:false,
+                    editableCellTemplate : 'modules/explorer/views/file-list/cell-name-editable.html'
                 },
                 {
                     field:'size',
                     displayName:'Size',
                     width: 100,
-                    resize: true,
+                    enableColumnResizing: true,
                     enableCellEdit: false,
+                    enableSorting: true,
                     cellTemplate: 'modules/explorer/views/file-list/cell-size.html'
                 },
                 {
                     field:'actions',
                     displayName:'',
-                    resize: true,
-                    enableCellEdit: false,
+                    width: 100,
+                    enableColumnResizing: true,
+                    enableSorting: false,
                     cellTemplate: 'modules/explorer/views/file-list/cell-actions.html'
                 }
-            ],
-            afterSelectionChange: function (rowItem) {
-                if (rowItem.selected)  {  // I don't know if this is true or just truey
-                    //write code to execute only when selected.
-                    //rowItem.entity is the "data" here
-                    rowItem.entity.select();
-                } else {
-                    //write code on deselection.
-                }
-            },
-            dblClickFn: scope.myDblClickHandler,
-            plugins: [pluginGridDoubleClick]
-
+            ]
 
         };
+
+            scope.gridOptions.onRegisterApi = function(gridApi){
+          //set gridApi on scope
+          scope.gridApi = gridApi;
+          gridApi.selection.on.rowSelectionChanged(scope,function(row){
+              row.entity.isSelected =  row.isSelected;
+              });
+
+          gridApi.selection.on.rowSelectionChangedBatch(scope,function(rows){
+              enumerateArray(rows, function(row, index){
+                  row.entity.isSelected = row.isSelected;
+                });
+              });
+          gridApi.rowEdit.on.saveRow(scope, function( rowEntity ){
+              scope
+                  .gridApi
+                  .rowEdit
+                  .setSavePromise(
+                        rowEntity,
+                        saveNewFileName(
+                            rowEntity,
+                            rowEntity.name)
+                        .promise );
+          });
+        };
+
 
         scope.$on('ngGridEventEndCellEdit', function(event) {
             var field = event.targetScope.col.field;
@@ -487,17 +466,21 @@ angular
 
         var renameFile = function (id, handler) {
 
+            var currentFile = null;
+            enumerateArray(scope.files, function(file, index){
+                if (file.id == id) {
+                    currentFile = file;
+                }
+            });
+            if (!currentFile)
+                return;
+
             var modalInstance = modal.open({
                 templateUrl: 'modules/explorer/views/rename.client.view.html',
                 controller: 'renameController',
                 resolve: {
                     currentName: function () {
-                        var currentName = null;
-                        enumerateArray(scope.files, function(file, index){
-                            if (file.id == id)
-                                currentName = file.name;
-                        });
-                        return currentName;
+                        return currentFile.name;
                     },
                     target: function(){
                         return 'file';
@@ -509,31 +492,32 @@ angular
             });
 
             modalInstance.result.then(function (newFileName) {
-                scope.isAsynqOperation = true;
-                dataService.rename(id, newFileName)
-                    .then(function(data) {
-                        scope.isAsynqOperation = false;
-                        if (data) {
-                            var targetFile = null;
-                            enumerateArray(scope.files, function(file, index){
-                                if (file.id == id)
-                                    targetFile = file;
-                            });
-
-                            if (targetFile)
-                                targetFile.name = newFileName;
-                        }
-                    },
-                    function (error) {
-                        scope.isNavigating = false;
-                        messageBox.show(
-                            'Deleting file exception',
-                            error
-                        );
-                    }
-                );
+                saveNewFileName(currentFile, newFileName);
             }, function(reason){
             });
+        };
+
+        var saveNewFileName = function(currentFile, newFileName){
+            scope.isAsynqOperation = true;
+            var promise = q.defer();
+            dataService.rename(currentFile.id, newFileName)
+                .then(function(data) {
+                    scope.isAsynqOperation = false;
+                    if (data)
+                        currentFile.name =
+                            newFileName;
+                    promise.resolve();
+                },
+                function (error) {
+                    scope.isNavigating = false;
+                    messageBox.show(
+                        'Renaming file exception',
+                        error
+                    );
+                    promise.reject();
+                }
+            );
+            return promise;
         };
 
         var enumerateArray = function(array, handler/*void function(child, index)*/){
@@ -559,8 +543,7 @@ angular
                     targetFile = file;
             });
             if (isChangeRequired && targetFile) {
-                scope.gridSelections.length = 0;
-                scope.gridSelections.push(targetFile);
+                interval( function() {scope.gridApi.selection.selectRow(targetFile);}, 0, 1);
             }
         };
 

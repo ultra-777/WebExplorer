@@ -1,9 +1,9 @@
-<span  class="fileListFileOptions ngCellText">
+<span  class="fileListFileOptions">
     <a
         title="Download"
         class="fileListCommandRef"
         href="{{row.entity.href}}"
-        ng-show="row.selected">
+        ng-show="row.isSelected">
         <img
             class="fileListMenuImage"
             src="modules/explorer/img/download.png"/>
@@ -12,7 +12,7 @@
         title="Rename"
         class="fileListCommandRef"
         ng-click="row.entity.rename()"
-        ng-show="row.selected">
+        ng-show="row.isSelected">
         <img
             class="fileListMenuImage"
             src="modules/explorer/img/rename.png"/>
@@ -21,7 +21,7 @@
         title="Delete"
         class="fileListCommandRef"
         ng-click="row.entity.delete()"
-        ng-show="row.selected">
+        ng-show="row.isSelected">
         <img
             class="fileListMenuImage"
             src="modules/explorer/img/delete-small.png"/>

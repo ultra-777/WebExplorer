@@ -13,7 +13,11 @@ var ApplicationConfiguration = (function() {
         'ui.router',
 		'ui.bootstrap',
 		'ui.utils',
-        'ngGrid'];
+        'ui.grid',
+        'ui.grid.resizeColumns',
+        'ui.grid.edit',
+        'ui.grid.rowEdit',
+        'ui.grid.selection'];
 
 	// Add a new vertical module
 	var registerModule = function(moduleName) {

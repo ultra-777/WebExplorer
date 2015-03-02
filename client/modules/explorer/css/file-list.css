@@ -90,6 +90,7 @@ hr.fileListSeparatorLine {
 .fileListFileOptions {
     float: right;
     margin: 0 15px 0 0;
+    padding: 5px;
 }
 
 .fileListGridStyle {
@@ -104,29 +105,18 @@ hr.fileListSeparatorLine {
 }
 
 /**/
-.fileListGridStyle > .ngViewport.ng-scope{
+.fileListGridStyle .ui-grid-viewport{
     width: 100% !important;
     overflow-x: hidden  !important;
+    overflow-y: auto  !important;
 }
-.fileListGridStyle > .ngCanvas, .ngViewport, .ngRow, .ngFooterPanel, .ngTopPanel   {
+.fileListGridStyle .ui-grid-canvas, .ui-grid-viewport, .ui-grid-row, .ui-grid-footer-panel, .ui-grid-top-panel   {
     width: 100% !important;
 }
-.fileListGridStyle > .ngRow {
+.fileListGridStyle  .ui-grid-row {
     border-bottom:none !important;
 }
 
-.fileListCellEdit{
-    max-width: 100px;
-    padding: 0;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    white-space: nowrap;
-    -ms-text-overflow: ellipsis;
-    -o-text-overflow: ellipsis;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
 /*
 .ngViewport.ng-scope {
     height: auto !important;
