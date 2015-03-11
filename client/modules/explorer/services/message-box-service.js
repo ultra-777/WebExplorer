@@ -29,6 +29,7 @@ angular.module('explorer').service('messageBoxService', ['$modal',
                 templateUrl: 'modules/explorer/views/message-box.html',
                 controller: 'MessageBoxController',
                 windowClass: 'css-center-modal',
+                size: 'sm',
                 resolve: {
                     model: function () {
                         return {
